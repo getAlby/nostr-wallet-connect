@@ -143,6 +143,6 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		svc.e.Logger.Error(err)
 		return err
 	}
-	return c.String(http.StatusOK, me.NPub)
+	return c.String(http.StatusOK, fmt.Sprintf("Connection details: public key %s, relay %s", svc.cfg.IdentityPubkey, svc.cfg.Relay))
 
 }

@@ -33,16 +33,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
+	cfg.IdentityPubkey = identityPubkey
 	npub, err := nip19.EncodePublicKey(identityPubkey)
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
 	logrus.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
-
 	svc := Service{
-		IdentityPubkey: identityPubkey,
-		cfg:            cfg,
+		cfg: cfg,
 	}
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
@@ -78,7 +77,7 @@ func main() {
 	}
 	var filters nostr.Filters
 	filters = []nostr.Filter{{
-		Tags:  nostr.TagMap{"p": []string{svc.IdentityPubkey}},
+		Tags:  nostr.TagMap{"p": []string{svc.cfg.IdentityPubkey}},
 		Kinds: []int{NIP_47_REQUEST_KIND},
 	}}
 	logrus.Info(filters)

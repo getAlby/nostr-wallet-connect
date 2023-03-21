@@ -10,10 +10,9 @@ import (
 )
 
 type Service struct {
-	cfg            *Config
-	lnClient       LNClient
-	IdentityPubkey string
-	ReceivedEOS    bool
+	cfg         *Config
+	lnClient    LNClient
+	ReceivedEOS bool
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) {
@@ -66,7 +65,7 @@ func (svc *Service) createResponse(kind int, initialEvent *nostr.Event, content 
 		return nil, err
 	}
 	resp := &nostr.Event{
-		PubKey:    svc.IdentityPubkey,
+		PubKey:    svc.cfg.IdentityPubkey,
 		CreatedAt: time.Now(),
 		Kind:      kind,
 		Tags:      nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}},
