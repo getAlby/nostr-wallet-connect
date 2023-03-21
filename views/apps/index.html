@@ -1,0 +1,21 @@
+{{define "body"}}
+<a href="/apps/new">Add</a>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Pubkey</th>
+    <th></th>
+  </tr>
+  {{range .Apps}}
+  <tr>
+    <td>{{.Name}}</td>
+    <td>{{.NostrPubkey}}</td>
+    <td>
+      <form method="post" action="/apps/delete/{{.ID}}">
+        <input type="submit" value="delete">
+      </form>
+    </td>
+  </tr>
+  {{end}}
+</table>
+{{end}}
