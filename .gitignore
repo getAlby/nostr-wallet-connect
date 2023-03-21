@@ -1,0 +1,4 @@
+nostr-wallet-connect
+.env
+*.macaroon
+*.db

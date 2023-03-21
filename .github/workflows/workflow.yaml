@@ -1,0 +1,22 @@
+name: Docker build & push
+on:
+  push:
+  release:
+    types: [published]
+jobs:
+  build:
+    env:
+      REGISTRY: ghcr.io
+      IMAGENAME: ${{ github.event.repository.name }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out code
+    - name: Docker build
+      uses: mr-smithers-excellent/docker-build-push@v5
+      id: build
+      with:
+        image: ${{ env.IMAGENAME }}
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
