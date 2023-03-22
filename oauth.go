@@ -40,6 +40,9 @@ type AlbyOAuthService struct {
 //go:embed public/*
 var embeddedAssets embed.FS
 
+//go:embed views/*
+var embeddedViews embed.FS
+
 // Implement e.Renderer interface
 func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	tmpl, ok := t.templates[name]
@@ -94,10 +97,10 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 
 	e := echo.New()
 	templates := make(map[string]*template.Template)
-	templates["apps/index.html"] = template.Must(template.ParseFiles("views/apps/index.html", "views/layout.html"))
-	templates["apps/new.html"] = template.Must(template.ParseFiles("views/apps/new.html", "views/layout.html"))
-	templates["apps/show.html"] = template.Must(template.ParseFiles("views/apps/show.html", "views/layout.html"))
-	templates["index.html"] = template.Must(template.ParseFiles("views/index.html", "views/layout.html"))
+	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
+	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
+	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
+	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
