@@ -3,10 +3,12 @@ package main
 import (
 	"bytes"
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,6 +30,16 @@ type TemplateRegistry struct {
 	templates map[string]*template.Template
 }
 
+type AlbyOAuthService struct {
+	cfg       *Config
+	oauthConf *oauth2.Config
+	db        *gorm.DB
+	e         *echo.Echo
+}
+
+//go:embed public/*
+var embeddedAssets embed.FS
+
 // Implement e.Renderer interface
 func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	tmpl, ok := t.templates[name]
@@ -36,13 +48,6 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 		return err
 	}
 	return tmpl.ExecuteTemplate(w, "layout.html", data)
-}
-
-type AlbyOAuthService struct {
-	cfg       *Config
-	oauthConf *oauth2.Config
-	db        *gorm.DB
-	e         *echo.Echo
 }
 
 func (svc *AlbyOAuthService) Start(ctx context.Context) (err error) {
@@ -91,17 +96,22 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	templates := make(map[string]*template.Template)
 	templates["apps/index.html"] = template.Must(template.ParseFiles("views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFiles("views/apps/new.html", "views/layout.html"))
+	templates["apps/show.html"] = template.Must(template.ParseFiles("views/apps/show.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFiles("views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	assetSubdir, err := fs.Sub(embeddedAssets, "public")
+	assetHandler := http.FileServer(http.FS(assetSubdir))
+	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
 	e.GET("/", svc.IndexHandler)
 	e.GET("/alby/auth", svc.AuthHandler)
 	e.GET("/alby/callback", svc.CallbackHandler)
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
 	e.GET("/qr", svc.QRHandler)
+	e.GET("/apps/:id", svc.AppsShowHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
@@ -175,6 +185,22 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
 		"Apps":               apps,
+	})
+}
+
+func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	userID := sess.Values["user_id"]
+	if userID == nil {
+		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+	}
+
+	user := &User{}
+	svc.db.Preload("Apps").First(&user, userID)
+	app := &App{}
+	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
+		"App": app,
 	})
 }
 

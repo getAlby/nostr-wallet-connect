@@ -1,0 +1,24 @@
+{{define "body"}}
+<h2 class="font-bold text-2xl font-headline mb-2">{{.App.Name}}</h2>
+<p class="text-gray-400 text-sm mb-4">Nostr Pubkey: {{.App.NostrPubkey}}</p>
+<p class="text-sm mb-4">{{.App.Description}}</p>
+
+<hr class="mb-4 mt-4">
+
+<h3 class="text-xl font-headline mb-2">Permissions</h3>
+
+<ul>
+  <li class="mb-2 relative pl-6">
+    <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
+    Send payments from your account.
+  </li>
+</ul>
+
+<hr class="mb-4 mt-4">
+
+<h3 class="text-xl font-headline mb-2">Danger zone</h3>
+
+<form method="post" action="/apps/delete/{{.App.ID}}">
+  <button type="submit" class="text-red-400">Disconnect</button>
+</form>
+{{end}}

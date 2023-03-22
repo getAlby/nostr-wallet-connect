@@ -31,6 +31,7 @@ type App struct {
 	UserId      uint `gorm:"index" validate:"required"`
 	User        User
 	Name        string `validate:"required"`
+	Description string
 	NostrPubkey string `gorm:"index"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

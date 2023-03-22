@@ -2,3 +2,4 @@ nostr-wallet-connect
 .env
 *.macaroon
 *.db
+node_modules
