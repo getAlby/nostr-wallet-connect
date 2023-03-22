@@ -88,10 +88,12 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	templates := make(map[string]*template.Template)
 	templates["apps/index.html"] = template.Must(template.ParseFiles("views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFiles("views/apps/new.html", "views/layout.html"))
+	templates["index.html"] = template.Must(template.ParseFiles("views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.GET("/", svc.IndexHandler)
 	e.GET("/alby/auth", svc.AuthHandler)
 	e.GET("/alby/callback", svc.CallbackHandler)
 	e.GET("/apps", svc.AppsListHandler)
