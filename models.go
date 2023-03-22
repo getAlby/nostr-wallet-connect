@@ -28,19 +28,19 @@ type User struct {
 
 type App struct {
 	ID          uint `gorm:"primaryKey"`
-	UserId      uint `gorm:index validate:"required"`
+	UserId      uint `gorm:"index" validate:"required"`
 	User        User
 	Name        string `validate:"required"`
-	NostrPubkey string `gorm:index`
+	NostrPubkey string `gorm:"index"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 type AppPermission struct {
 	ID        uint `gorm:"primaryKey"`
-	AppId     uint `gorm:index validate:"required"`
+	AppId     uint `gorm:"index" validate:"required"`
 	App       App
-	NostrKind int64 `gorm:index validate:"required"`
+	NostrKind int64 `gorm:"index" validate:"required"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
