@@ -17,7 +17,9 @@
 <hr class="mb-4 mt-4">
 
 <h3 class="text-xl font-headline mb-2">Danger zone</h3>
-
+<p class="text-sm mb-4">
+  This will revoke the permission and will no longer allow calls from this pubkey.
+</p>
 <form method="post" action="/apps/delete/{{.App.ID}}">
   <button type="submit" class="text-red-400">Disconnect</button>
 </form>

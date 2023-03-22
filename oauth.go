@@ -288,7 +288,8 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 
 	app := &App{}
 	svc.db.FirstOrInit(&app, App{UserId: user.ID, NostrPubkey: pubkey.(string)})
-	app.Name = "General"
+	app.Name = me.LightningAddress
+	app.Description = "All apps with your private key"
 	svc.db.Save(&app)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)

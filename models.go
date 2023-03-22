@@ -11,8 +11,9 @@ const (
 )
 
 type AlbyMe struct {
-	Identifier string `json:"identifier"`
-	NPub       string `json:"nostr_pubkey"`
+	Identifier       string `json:"identifier"`
+	NPub             string `json:"nostr_pubkey"`
+	LightningAddress string `json:"lightning_address"`
 }
 
 type User struct {
