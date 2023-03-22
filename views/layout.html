@@ -4,10 +4,40 @@
 
 <head>
   <title>Alby - Nostr Wallet Connect</title>
+  <link href="/public/css/application.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/648ec8a8fe.js" crossorigin="anonymous"></script>
 </head>
 
-<body>
-  {{template "body" .}}
+<body class="bg-gray-50">
+  <nav class="bg-white border-b border-gray-200 mb-4" data-controller="navbar">
+    <div class="container mx-auto">
+      <div class="w-full py-2 lg:w-8/12 mx-auto flex flex-wrap justify-between items-center" style="height: 56px">
+        <a href="/apps">
+          <img alt="Alby logo" class="ml-4 md:ml-0 object-contain w-10"
+            src="/assets/logo-3a6b76369b902308fca24e1a1c5c111b072f3edcd64e0f5021761bc72e8c2b29.svg" />
+        </a>
+        <div class="hidden md:flex-1 md:flex items-center">
+          <ul class="flex flex-wrap mx-auto pl-10 pr-10">
+            <li class="mx-2 flex">
+            </li>
+          </ul>
+          <div>
+            <a class="text-gray-400 pl-5 py-2 font-medium" rel="nofollow" data-method="post" href="/logout">Logout</a>
+          </div>
+        </div>
+
+        <button data-action="click->navbar#toggleNav" type="button"
+          class="mr-4 inline-flex items-center border border-gray-300 px-4 py-3 rounded-md text-lg text-gray-500 md:hidden focus:outline-none">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <main class="container mx-auto pb-4 flex flex-col">
+    <div class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 py-4">
+      {{template "body" .}}
+    </div>
+  </main>
 </body>
 
 </html>
