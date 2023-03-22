@@ -2,8 +2,6 @@ package main
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -18,11 +16,33 @@ type AlbyMe struct {
 }
 
 type User struct {
-	gorm.Model
-	NostrPubkey  string
-	AccessToken  string
-	RefreshToken string
-	Expiry       time.Time
+	ID             uint   `gorm:"primaryKey"`
+	AlbyIdentifier string `gorm:"uniqueIndex" validate:"required"`
+	AccessToken    string `validate:"required"`
+	RefreshToken   string `validate:"required"`
+	Expiry         time.Time
+	Apps           []App
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type App struct {
+	ID          uint `gorm:"primaryKey"`
+	UserId      uint `gorm:"index" validate:"required"`
+	User        User
+	Name        string `validate:"required"`
+	NostrPubkey string `gorm:"index"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type AppPermission struct {
+	ID        uint `gorm:"primaryKey"`
+	AppId     uint `gorm:"index" validate:"required"`
+	App       App
+	NostrKind int64 `gorm:"index" validate:"required"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type PayRequest struct {
