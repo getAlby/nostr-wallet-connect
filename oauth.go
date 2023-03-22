@@ -117,8 +117,8 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
-	app := &App{}
-	err = svc.db.Preload("User").Find(app, &App{
+	app := App{}
+	err = svc.db.Preload("User").Find(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -175,7 +175,7 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
 
-	user := &User{}
+	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 	apps := user.Apps
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
@@ -192,9 +192,9 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
 
-	user := &User{}
+	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
-	app := &App{}
+	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":  app,
@@ -208,7 +208,7 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
-	user := &User{}
+	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
@@ -222,7 +222,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
-	user := &User{}
+	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 
 	svc.db.Model(&user).Association("Apps").Append(&App{Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")})
@@ -235,9 +235,9 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
-	user := &User{}
+	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
-	app := &App{}
+	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	svc.db.Delete(&app)
 	return c.Redirect(http.StatusMovedPermanently, "/apps")
@@ -281,14 +281,14 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		return err
 	}
 
-	user := &User{}
+	user := User{}
 	svc.db.FirstOrInit(&user, User{AlbyIdentifier: me.Identifier})
 	user.AccessToken = tok.AccessToken
 	user.RefreshToken = tok.RefreshToken
 	user.Expiry = tok.Expiry // TODO; probably needs some calculation
 	svc.db.Save(&user)
 
-	app := &App{}
+	app := App{}
 	svc.db.FirstOrInit(&app, App{UserId: user.ID, NostrPubkey: pubkey.(string)})
 	app.Name = me.LightningAddress
 	app.Description = "All apps with your private key"
