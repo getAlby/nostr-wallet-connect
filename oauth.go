@@ -136,6 +136,9 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	}
 	logrus.Infof("Sent payment with hash %s", responsePayload.PaymentHash)
 	return responsePayload.Preimage, nil
+func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
+}
 }
 
 func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
