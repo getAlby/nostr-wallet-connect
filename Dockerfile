@@ -19,7 +19,7 @@ FROM alpine as final
 
 # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /build/main /bin/
-COPY --from=builder /public /public/
-COPY --from=builder /views /views/
+COPY --from=builder /build/public /public/
+COPY --from=builder /build/views /views/
 
 ENTRYPOINT [ "/bin/main" ]
