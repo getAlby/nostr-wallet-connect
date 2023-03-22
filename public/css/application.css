@@ -759,12 +759,20 @@ select {
   margin-right: 0.75rem;
 }
 
-.mt-2 {
-  margin-top: 0.5rem;
+.mr-4 {
+  margin-right: 1rem;
 }
 
 .mt-4 {
   margin-top: 1rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
 }
 
 .block {
@@ -787,12 +795,16 @@ select {
   display: none;
 }
 
-.w-1\/6 {
-  width: 16.666667%;
-}
-
 .w-10 {
   width: 2.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.w-1\/6 {
+  width: 16.666667%;
 }
 
 .w-2\/6 {
@@ -803,16 +815,16 @@ select {
   width: 50%;
 }
 
-.w-full {
-  width: 100%;
-}
-
 .table-fixed {
   table-layout: fixed;
 }
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
 }
 
 .flex-col {
@@ -843,12 +855,12 @@ select {
   text-overflow: ellipsis;
 }
 
-.rounded-lg {
-  border-radius: 0.5rem;
-}
-
 .rounded-md {
   border-radius: 0.375rem;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
 }
 
 .border {
@@ -955,6 +967,11 @@ select {
   line-height: 2rem;
 }
 
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -997,11 +1014,6 @@ select {
   color: rgb(55 65 81 / var(--tw-text-opacity));
 }
 
-.text-gray-900 {
-  --tw-text-opacity: 1;
-  color: rgb(17 24 39 / var(--tw-text-opacity));
-}
-
 .text-green-700 {
   --tw-text-opacity: 1;
   color: rgb(21 128 61 / var(--tw-text-opacity));
@@ -1010,6 +1022,11 @@ select {
 .text-red-400 {
   --tw-text-opacity: 1;
   color: rgb(248 113 113 / var(--tw-text-opacity));
+}
+
+.text-gray-900 {
+  --tw-text-opacity: 1;
+  color: rgb(17 24 39 / var(--tw-text-opacity));
 }
 
 .shadow {
@@ -1061,11 +1078,6 @@ select {
 }
 
 @media (prefers-color-scheme: dark) {
-  .dark\:border-gray-600 {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity));
-  }
-
   .dark\:border-gray-700 {
     --tw-border-opacity: 1;
     border-color: rgb(55 65 81 / var(--tw-border-opacity));
@@ -1074,6 +1086,11 @@ select {
   .dark\:border-neutral-800 {
     --tw-border-opacity: 1;
     border-color: rgb(38 38 38 / var(--tw-border-opacity));
+  }
+
+  .dark\:border-gray-600 {
+    --tw-border-opacity: 1;
+    border-color: rgb(75 85 99 / var(--tw-border-opacity));
   }
 
   .dark\:bg-gray-700 {
@@ -1139,6 +1156,10 @@ select {
 
   .md\:flex {
     display: flex;
+  }
+
+  .md\:hidden {
+    display: none;
   }
 
   .md\:flex-1 {
