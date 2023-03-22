@@ -106,7 +106,7 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
-	logrus.Infof("Processing payment request from %s", senderPubkey)
+	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
 	app := &App{}
 	err = svc.db.Preload("User").Find(app, &App{
 		NostrPubkey: senderPubkey,
@@ -135,8 +135,14 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	if err != nil {
 		return "", err
 	}
-	logrus.Infof("Sent payment with hash %s", responsePayload.PaymentHash)
-	return responsePayload.Preimage, nil
+	if resp.StatusCode < 300 {
+		logrus.Infof("Sent payment with hash %s preimage %s", responsePayload.PaymentHash, responsePayload.Preimage)
+		return responsePayload.Preimage, nil
+	} else {
+		return "", errors.New("Failed")
+	}
+}
+
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
