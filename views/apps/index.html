@@ -1,6 +1,8 @@
 {{define "body"}}
-<div class="mb-6 flex flex-row-reverse">
-  <h2 class="font-bold text-2xl font-headline">Your app connections</h2>
+<div class="mb-6 flex justify-between">
+  <h2 class="font-bold text-2xl font-headline py-3">
+    Your app permissions
+  </h2>
 
   <a class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
     href="/apps/new">
@@ -9,33 +11,45 @@
   </a>
 </div>
 
-<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+<p class="text-sm mb-4">
+  These pubkeys have permissions to your wallet.
+</p>
+
+<table class="table-fixed w-full text-sm text-left text-gray-500 dark:text-gray-400">
   <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
     <tr>
-      <th scope="col" class="px-6 py-3">Name</th>
-      <th scope="col" class="px-6 py-3">Pubkey</th>
-      <th scope="col" class="px-6 py-3"></th>
+      <th scope="col" class="px-6 py-3 w-2/6">Name</th>
+      <th scope="col" class="px-6 py-3 w-3/6">Pubkey</th>
+      <th scope="col" class="px-6 py-3 w-1/6"></th>
     </tr>
   </thead>
   <tbody>
     {{range .Apps}}
     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-      <td class="px-6 py-4"><a href="/apps/{{.ID}}">{{.Name}}</a></td>
-      <td class="px-6 py-4"><a href="/apps/{{.ID}}">{{.NostrPubkey}}</a></td>
       <td class="px-6 py-4">
-        <form method="post" action="/apps/delete/{{.ID}}">
-          <input type="submit" value="Disconnect" class="text-red-400 cursor-pointer">
-        </form>
+        <a href="/apps/{{.ID}}">{{.Name}}</a>
+      </td>
+      <td class="px-6 py-4 text-ellipsis overflow-hidden">
+        <a href="/apps/{{.ID}}">{{.NostrPubkey}}</a>
+      </td>
+      <td class="px-6 py-4 ">
+        <a href="/apps/{{.ID}}">Details</a>
       </td>
     </tr>
     {{end}}
   </tbody>
 </table>
-<br>
-<br>
-<br>
-<br>
-<a href="nostrwalletconnect://{{.NostrWalletConnect}}">Nostr Wallet Connect</a>
-<br>
-<img src="qr">
+
+<hr class="mb-4 mt-4">
+
+<h2 class="font-bold text-2xl font-headline mb-2">Connect</h2>
+<p class="text-sm mb-4">
+  To give a new app permission to access your wallet scan this QR code
+</p>
+
+</p>
+<a href="nostrwalletconnect://{{.NostrWalletConnect}}">Nostr Wallet Connect
+  <img src="qr">
+</a>
+
 {{end}}

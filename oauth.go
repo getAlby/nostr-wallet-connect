@@ -7,17 +7,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"io/fs"
 	"net/http"
 	"net/url"
 	"time"
 
-	"html/template"
-
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
@@ -101,6 +101,10 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
+	e.HideBanner = true
+	e.Use(middleware.Recover())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Logger())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
@@ -185,6 +189,7 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
 		"Apps":               apps,
+		"User":               user,
 	})
 }
 
@@ -200,7 +205,8 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	app := &App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App": app,
+		"App":  app,
+		"User": user,
 	})
 }
 
@@ -210,8 +216,12 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
+	user := &User{}
+	svc.db.First(&user, userID)
 
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{})
+	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
+		"User": user,
+	})
 }
 
 func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
@@ -288,7 +298,8 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 
 	app := &App{}
 	svc.db.FirstOrInit(&app, App{UserId: user.ID, NostrPubkey: pubkey.(string)})
-	app.Name = "General"
+	app.Name = me.LightningAddress
+	app.Description = "All apps with your private key"
 	svc.db.Save(&app)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
