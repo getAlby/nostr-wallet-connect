@@ -100,6 +100,7 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	e.GET("/apps/new", svc.AppsNewHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
+	e.GET("/logout", svc.LogoutHandler)
 	svc.e = e
 	return svc, err
 }
@@ -139,6 +140,16 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
+
+func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["user_id"] = ""
+	delete(sess.Values, "user_id")
+	sess.Options = &sessions.Options{
+		MaxAge: -1,
+	}
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(http.StatusMovedPermanently, "/")
 }
 
 func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
@@ -236,6 +247,10 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	svc.db.Save(&app)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Options = &sessions.Options{
+		Path:   "/",
+		MaxAge: 0, // TODO: how to session cookie?
+	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(http.StatusMovedPermanently, "/apps")
