@@ -185,6 +185,7 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
 		"Apps":               apps,
+		"User":               user,
 	})
 }
 
@@ -200,7 +201,8 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	app := &App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App": app,
+		"App":  app,
+		"User": user,
 	})
 }
 
@@ -210,8 +212,12 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
 	}
+	user := &User{}
+	svc.db.First(&user, userID)
 
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{})
+	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
+		"User": user,
+	})
 }
 
 func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {

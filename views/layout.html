@@ -21,14 +21,12 @@
             </li>
           </ul>
           <div>
-            <a class="text-gray-400 pl-5 py-2 font-medium" rel="nofollow" data-method="post" href="/logout">Logout</a>
+            {{if .User}}
+            <a class="text-gray-400 pl-5 py-2 font-medium" rel="nofollow" href="/logout">Logout</a>
+            {{end}}
           </div>
         </div>
 
-        <button data-action="click->navbar#toggleNav" type="button"
-          class="mr-4 inline-flex items-center border border-gray-300 px-4 py-3 rounded-md text-lg text-gray-500 md:hidden focus:outline-none">
-          <i class="fas fa-bars"></i>
-        </button>
       </div>
     </div>
   </nav>
