@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"html/template"
@@ -17,6 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
+	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -99,6 +101,7 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	e.GET("/alby/callback", svc.CallbackHandler)
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
+	e.GET("/qr", svc.QRHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
@@ -170,7 +173,8 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	apps := user.Apps
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
-		"Apps": apps,
+		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
+		"Apps":               apps,
 	})
 }
 
@@ -214,6 +218,14 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	url := svc.oauthConf.AuthCodeURL("")
 	return c.Redirect(http.StatusMovedPermanently, url)
+}
+
+func (svc *AlbyOAuthService) QRHandler(c echo.Context) error {
+	img, err := qrcode.Encode(fmt.Sprintf("nostrwalletconnect://%s?relay=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay), qrcode.High, 256)
+	if err != nil {
+		return err
+	}
+	return c.Blob(http.StatusOK, "img/png", img)
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
