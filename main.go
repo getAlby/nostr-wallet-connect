@@ -77,16 +77,16 @@ func main() {
 		svc.lnClient = oauthService
 	}
 	var filters nostr.Filters
-	filters = []nostr.Filter{{
+	filter := nostr.Filter{
 		Tags:  nostr.TagMap{"p": []string{svc.IdentityPubkey}},
 		Kinds: []int{NIP_47_REQUEST_KIND},
-	}}
-	logrus.Info(filters)
-	if svc.cfg.ClientPubkey != "" {
-		filters = append(filters, nostr.Filter{
-			Authors: []string{svc.cfg.ClientPubkey},
-		})
 	}
+	if svc.cfg.ClientPubkey != "" {
+		filter.Authors = []string{svc.cfg.ClientPubkey}
+	}
+	filters = []nostr.Filter{filter}
+	logrus.Info(filters)
+
 	sub := relay.Subscribe(ctx, filters)
 	logrus.Info("listening to events")
 	wg.Add(1)
