@@ -39,12 +39,30 @@ type App struct {
 }
 
 type AppPermission struct {
+type NostrEvent struct {
 	ID        uint `gorm:"primaryKey"`
 	AppId     uint `gorm:"index" validate:"required"`
 	App       App
-	NostrKind int64 `gorm:"index" validate:"required"`
+	NostrId   string `gorm:"uniqueIndex" validate:"required"`
+	ReplyId   string
+	Content   string
+	State     string
+	RepliedAt time.Time
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Payment struct {
+	ID             uint `gorm:"primaryKey"`
+	AppId          uint `gorm:"index" validate:"required"`
+	App            App
+	NostrEventId   uint `gorm:"index" validate:"required"`
+	NostrEvent     NostrEvent
+	Amount         uint
+	PaymentRequest string
+	Preimage       string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type PayRequest struct {

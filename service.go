@@ -6,11 +6,14 @@ import (
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type Service struct {
 	cfg         *Config
+	db          *gorm.DB
 	lnClient    LNClient
 	ReceivedEOS bool
 }
@@ -31,7 +34,16 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 				continue
 			}
 			if resp != nil {
+				nostrEvent := NostrEvent{}
+				result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
+				if result.Error != nil {
+					logrus.Error(result.Error)
+					continue
+				}
 				status := sub.Relay.Publish(ctx, *resp)
+				nostrEvent.State = "replied" // TODO: check if publish was successful
+				nostrEvent.ReplyId = resp.ID
+				svc.db.Save(&nostrEvent)
 				logrus.Infof("published event, status %v", status)
 			}
 		}
@@ -43,6 +55,21 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if !svc.ReceivedEOS {
 		return nil, nil
 	}
+	// make sure we don't know the event, yet
+	nostrEvent := NostrEvent{}
+	findEventResult := svc.db.Where("nostr_id = ?", event.ID).Find(&nostrEvent)
+	if findEventResult.RowsAffected != 0 {
+		logrus.Warnf("Event %s already processed", event.ID)
+		return nil, nil
+	}
+	app := App{}
+	err = svc.db.Preload("User").Find(&app, &App{
+		NostrPubkey: event.PubKey,
+	}).Error
+	if err != nil {
+		return nil, err
+	}
+
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
 	if err != nil {
 		return nil, err
@@ -52,10 +79,33 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if err != nil {
 		return nil, err
 	}
+
+	nostrEvent = NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
+	insertNostrEventResult := svc.db.Create(&nostrEvent)
+	if insertNostrEventResult.Error != nil {
+		return nil, insertNostrEventResult.Error
+	}
+
+	paymentRequest, err := decodepay.Decodepay(bolt11)
+	if err != nil {
+		return nil, err
+	}
+	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
+	insertPaymentResult := svc.db.Create(&payment)
+	if insertPaymentResult.Error != nil {
+		return nil, insertPaymentResult.Error
+	}
+
 	preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
 	if err != nil {
+		nostrEvent.State = "error"
+		svc.db.Save(&nostrEvent)
 		return svc.createResponse(NIP_47_ERROR_RESPONSE_KIND, event, err.Error(), ss)
 	}
+	payment.Preimage = preimage
+	nostrEvent.State = "executed"
+	svc.db.Save(&nostrEvent)
+	svc.db.Save(&payment)
 	return svc.createResponse(NIP_47_SUCCESS_RESPONSE_KIND, event, preimage, ss)
 }
 
