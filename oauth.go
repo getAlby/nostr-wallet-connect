@@ -129,7 +129,7 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
 	app := App{}
-	err = svc.db.Preload("User").Find(&app, &App{
+	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
