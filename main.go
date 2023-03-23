@@ -46,7 +46,7 @@ func main() {
 		log.Fatalf("Failed to open DB %v", err)
 	}
 	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{})
+	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
 	if err != nil {
 		log.Fatalf("Failed migrate DB %v", err)
 	}
