@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 
 	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/joho/godotenv"
@@ -14,6 +15,9 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
@@ -37,6 +41,26 @@ func main() {
 	npub, err := nip19.EncodePublicKey(identityPubkey)
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+	}
+
+	db, err := gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold:             3 * time.Second,
+				LogLevel:                  logger.Info,
+				IgnoreRecordNotFoundError: true,
+				Colorful:                  false,
+			},
+		),
+	})
+	if err != nil {
+		log.Fatalf("Failed to open DB %v", err)
+	}
+	// Migrate the schema
+	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{})
+	if err != nil {
+		log.Fatalf("Failed migrate DB %v", err)
 	}
 
 	logrus.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
