@@ -63,7 +63,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, nil
 	}
 	app := App{}
-	err = svc.db.Preload("User").Find(&app, &App{
+	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: event.PubKey,
 	}).Error
 	if err != nil {
@@ -90,6 +90,11 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if err != nil {
 		return nil, err
 	}
+
+	if !svc.hasPermission(&app, event, &paymentRequest) {
+		return svc.createResponse(NIP_47_ERROR_RESPONSE_KIND, event, "no permission", ss)
+	}
+
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
 	insertPaymentResult := svc.db.Create(&payment)
 	if insertPaymentResult.Error != nil {
@@ -126,4 +131,30 @@ func (svc *Service) createResponse(kind int, initialEvent *nostr.Event, content 
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (svc *Service) hasPermission(app *App, event *nostr.Event, paymentRequest *decodepay.Bolt11) bool {
+	appPermission := AppPermission{}
+	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
+		AppId:     app.ID,
+		NostrKind: event.Kind,
+	})
+	if findPermissionResult.RowsAffected == 0 {
+		return false
+	}
+	maxAmount := appPermission.MaxAmount
+	if maxAmount != 0 {
+		var result SumResult
+		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, time.Now().AddDate(0, -1, 0)).Scan(&result)
+		if int64(result.Sum)+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
+			return false
+		}
+	}
+	maxAmoutPerTransaction := appPermission.MaxAmoutPerTransaction
+	if maxAmoutPerTransaction != 0 {
+		if paymentRequest.MSatoshi/1000 > int64(maxAmoutPerTransaction) {
+			return false
+		}
+	}
+	return true
 }

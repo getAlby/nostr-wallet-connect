@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -118,7 +119,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
 	app := App{}
-	err = svc.db.Preload("User").Find(&app, &App{
+	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
@@ -196,9 +197,13 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+
+	appPermission := AppPermission{}
+	svc.db.Where("app_id = ? AND nostr_kind = ?", app.ID, NIP_47_REQUEST_KIND).First(&appPermission)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":  app,
-		"User": user,
+		"App":           app,
+		"AppPermission": appPermission,
+		"User":          user,
 	})
 }
 
@@ -225,7 +230,18 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 
-	svc.db.Model(&user).Association("Apps").Append(&App{Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")})
+	app := App{User: user, Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")}
+	svc.db.Create(&app)
+	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
+	maxAmoutPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmoutPerTransaction"))
+	appPermission := AppPermission{
+		App:                    app,
+		NostrKind:              NIP_47_REQUEST_KIND,
+		MaxAmoutPerTransaction: maxAmoutPerTransaction,
+		MaxAmount:              maxAmount,
+	}
+	result := svc.db.Create(&appPermission)
+	logrus.Info("%v", result.Error)
 	return c.Redirect(http.StatusMovedPermanently, "/apps")
 }
 
@@ -239,6 +255,7 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+
 	svc.db.Delete(&app)
 	return c.Redirect(http.StatusMovedPermanently, "/apps")
 }
@@ -293,6 +310,10 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	app.Name = me.LightningAddress
 	app.Description = "All apps with your private key"
 	svc.db.Save(&app)
+
+	appPermission := AppPermission{}
+	svc.db.FirstOrInit(&appPermission, AppPermission{AppId: app.ID, NostrKind: NIP_47_REQUEST_KIND})
+	svc.db.Save(&appPermission)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	sess.Options = &sessions.Options{

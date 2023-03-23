@@ -16,6 +16,18 @@
   <li class="mb-2 relative pl-6">
     <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
     Send payments from your account.
+    {{ if eq .AppPermission.MaxAmount 0 }}
+    {{ else }}
+    <p>
+      monthly Budget: {{.AppPermission.MaxAmount}}
+    </p>
+    {{end}}
+    {{ if eq .AppPermission.MaxAmoutPerTransaction 0 }}
+    {{ else }}
+    <p>
+      maximum transaction amount: {{.AppPermission.MaxAmoutPerTransaction}}
+    </p>
+    {{end}}
   </li>
 </ul>
 

@@ -28,7 +28,33 @@
   <ul>
     <li class="mb-2 relative pl-6">
       <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
-      Send payments from your account.
+      <p>
+        Send payments from your account.
+      </p>
+      <p>
+        <input type="checkbox" class="mr-2" onclick="document.getElementById('budget').classList.toggle('hidden');">Set
+        a
+        budget
+      </p>
+      <div id="budget" class="hidden my-4">
+        <div class="mt-2">
+          <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Monthly amount in sats
+          </label>
+          <input type="text" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="10000" pattern="{0-9}.*">
+        </div>
+        <div class="mt-2">
+          <label for="MaxAmoutPerTransaction" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Max amount per transaction
+          </label>
+          <input type="text" name="MaxAmoutPerTransaction" id="MaxAmoutPerTransaction"
+            aria-describedby="helper-text-explanation"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="10000" pattern="{0-9}.*">
+        </div>
+      </div>
     </li>
   </ul>
 
