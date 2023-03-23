@@ -27,7 +27,7 @@
     {{range .Apps}}
     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
       <td class="px-6 py-4">
-        <a href="/apps/{{.ID}}">{{.Name}}</a>
+        <a href="/apps/{{.ID}}" class="underline">{{.Name}}</a>
       </td>
       <td class="px-6 py-4 text-ellipsis overflow-hidden">
         <a href="/apps/{{.ID}}">{{.NostrPubkey}}</a>
