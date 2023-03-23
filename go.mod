@@ -3,10 +3,12 @@ module github.com/getAlby/nostr-wallet-connect
 go 1.20
 
 require (
+	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/nbd-wtf/go-nostr v0.13.2
+	github.com/nbd-wtf/ln-decodepay v1.11.1
 	golang.org/x/oauth2 v0.4.0
 	gorm.io/gorm v1.23.8
 )
@@ -87,7 +89,6 @@ require (
 	github.com/miekg/dns v1.1.50 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/nbd-wtf/ln-decodepay v1.11.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect

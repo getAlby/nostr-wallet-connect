@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
 
+	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -29,7 +29,7 @@ func main() {
 	}
 	relay, err := nostr.RelayConnect(context.Background(), cfg.Relay)
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
 	if err != nil {
@@ -51,11 +51,17 @@ func main() {
 		log.Fatalf("Failed migrate DB %v", err)
 	}
 
-	logrus.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
+	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
 	svc := Service{
 		cfg: cfg,
 		db:  db,
 	}
+	echologrus.Logger = log.New()
+	echologrus.Logger.SetFormatter(&log.JSONFormatter{})
+	echologrus.Logger.SetOutput(os.Stdout)
+	echologrus.Logger.SetLevel(log.InfoLevel)
+	svc.Logger = *echologrus.Logger
+
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 	var wg sync.WaitGroup
@@ -67,23 +73,23 @@ func main() {
 			MacaroonFile: cfg.LNDMacaroonFile,
 		})
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 		info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
-		logrus.Infof("Connected to LND - alias %s", info.Alias)
+		log.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(&svc)
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 		wg.Add(1)
 		go func() {
 			oauthService.Start(ctx)
-			logrus.Info("OAuth server exited")
+			log.Info("OAuth server exited")
 			wg.Done()
 		}()
 		svc.lnClient = oauthService
@@ -97,15 +103,15 @@ func main() {
 		filter.Authors = []string{svc.cfg.ClientPubkey}
 	}
 	filters = []nostr.Filter{filter}
-	logrus.Info(filters)
+	log.Info(filters)
 
 	sub := relay.Subscribe(ctx, filters)
-	logrus.Info("listening to events")
+	log.Info("listening to events")
 	wg.Add(1)
 	go func() {
 		svc.StartSubscription(ctx, sub)
 		wg.Done()
 	}()
 	wg.Wait()
-	logrus.Info("Graceful shutdown completed. Goodbye.")
+	log.Info("Graceful shutdown completed. Goodbye.")
 }
