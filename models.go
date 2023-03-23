@@ -38,7 +38,6 @@ type App struct {
 	UpdatedAt   time.Time
 }
 
-type AppPermission struct {
 type NostrEvent struct {
 	ID        uint `gorm:"primaryKey"`
 	AppId     uint `gorm:"index" validate:"required"`
