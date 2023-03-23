@@ -72,8 +72,9 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		//Todo: do we really need all these permissions?
 		Scopes: []string{"account:read", "payments:send", "invoices:read", "transactions:read", "invoices:create"},
 		Endpoint: oauth2.Endpoint{
-			TokenURL: svc.cfg.OAuthTokenUrl,
-			AuthURL:  svc.cfg.OAuthAuthUrl,
+			TokenURL:  svc.cfg.OAuthTokenUrl,
+			AuthURL:   svc.cfg.OAuthAuthUrl,
+			AuthStyle: 2, // use HTTP Basic Authorization https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
 		},
 		RedirectURL: svc.cfg.OAuthRedirectUrl,
 	}
@@ -159,8 +160,6 @@ func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 
 func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["user_id"] = ""
-	delete(sess.Values, "user_id")
 	sess.Options = &sessions.Options{
 		MaxAge: -1,
 	}
@@ -244,6 +243,15 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
+	// clear current session
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["user_id"] = ""
+	delete(sess.Values, "user_id")
+	sess.Options = &sessions.Options{
+		MaxAge: -1,
+	}
+	sess.Save(c.Request(), c.Response())
+
 	url := svc.oauthConf.AuthCodeURL("")
 	return c.Redirect(http.StatusMovedPermanently, url)
 }
