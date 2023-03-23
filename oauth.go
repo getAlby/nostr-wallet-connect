@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
+	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
 )
 
@@ -104,6 +105,8 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
+
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))

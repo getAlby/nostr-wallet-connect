@@ -14,6 +14,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -56,6 +57,10 @@ func main() {
 		cfg: cfg,
 		db:  db,
 	}
+
+	tracer.Start(tracer.WithAgentAddr(cfg.DatadogAgentUrl))
+	defer tracer.Stop()
+
 	echologrus.Logger = log.New()
 	echologrus.Logger.SetFormatter(&log.JSONFormatter{})
 	echologrus.Logger.SetOutput(os.Stdout)
