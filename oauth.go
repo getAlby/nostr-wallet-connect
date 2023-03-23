@@ -22,7 +22,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -66,33 +65,23 @@ func (svc *AlbyOAuthService) Start(ctx context.Context) (err error) {
 	return svc.e.Shutdown(ctx)
 }
 
-func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
+func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	conf := &oauth2.Config{
-		ClientID:     cfg.AlbyClientId,
-		ClientSecret: cfg.AlbyClientSecret,
+		ClientID:     svc.cfg.AlbyClientId,
+		ClientSecret: svc.cfg.AlbyClientSecret,
 		//Todo: do we really need all these permissions?
 		Scopes: []string{"account:read", "payments:send", "invoices:read", "transactions:read", "invoices:create"},
 		Endpoint: oauth2.Endpoint{
-			TokenURL: cfg.OAuthTokenUrl,
-			AuthURL:  cfg.OAuthAuthUrl,
+			TokenURL: svc.cfg.OAuthTokenUrl,
+			AuthURL:  svc.cfg.OAuthAuthUrl,
 		},
-		RedirectURL: cfg.OAuthRedirectUrl,
-	}
-	//todo: postgres db
-	db, err := gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{})
-	if err != nil {
-		return nil, err
+		RedirectURL: svc.cfg.OAuthRedirectUrl,
 	}
 
-	svc := &AlbyOAuthService{
-		cfg:       cfg,
+	albySvc := &AlbyOAuthService{
+		cfg:       svc.cfg,
 		oauthConf: conf,
-		db:        db,
+		db:        svc.db,
 	}
 
 	e := echo.New()
@@ -112,18 +101,18 @@ func NewAlbyOauthService(cfg *Config) (result *AlbyOAuthService, err error) {
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
-	e.GET("/", svc.IndexHandler)
-	e.GET("/alby/auth", svc.AuthHandler)
-	e.GET("/alby/callback", svc.CallbackHandler)
-	e.GET("/apps", svc.AppsListHandler)
-	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/qr", svc.QRHandler)
-	e.GET("/apps/:id", svc.AppsShowHandler)
-	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
-	e.GET("/logout", svc.LogoutHandler)
-	svc.e = e
-	return svc, err
+	e.GET("/", albySvc.IndexHandler)
+	e.GET("/alby/auth", albySvc.AuthHandler)
+	e.GET("/alby/callback", albySvc.CallbackHandler)
+	e.GET("/apps", albySvc.AppsListHandler)
+	e.GET("/apps/new", albySvc.AppsNewHandler)
+	e.GET("/qr", albySvc.QRHandler)
+	e.GET("/apps/:id", albySvc.AppsShowHandler)
+	e.POST("/apps", albySvc.AppsCreateHandler)
+	e.POST("/apps/delete/:id", albySvc.AppsDeleteHandler)
+	e.GET("/logout", albySvc.LogoutHandler)
+	albySvc.e = e
+	return albySvc, err
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {

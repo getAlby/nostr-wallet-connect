@@ -14,6 +14,8 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -39,9 +41,20 @@ func main() {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
+	db, err := gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to open DB %v", err)
+	}
+	// Migrate the schema
+	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
+	if err != nil {
+		log.Fatalf("Failed migrate DB %v", err)
+	}
+
 	logrus.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
 	svc := Service{
 		cfg: cfg,
+		db:  db,
 	}
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
@@ -63,7 +76,7 @@ func main() {
 		logrus.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
-		oauthService, err := NewAlbyOauthService(cfg)
+		oauthService, err := NewAlbyOauthService(&svc)
 		if err != nil {
 			logrus.Fatal(err)
 		}
