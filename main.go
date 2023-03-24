@@ -27,10 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-	relay, err := nostr.RelayConnect(context.Background(), cfg.Relay)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+
 	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
@@ -88,7 +85,30 @@ func main() {
 		}()
 		svc.lnClient = oauthService
 	}
-	var filters nostr.Filters
+
+	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
+	//TODO: we can start this loop for multiple relays
+	for {
+		logrus.Info("Connecting to the relay")
+		relay, err := nostr.RelayConnect(ctx, cfg.Relay)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		logrus.Info("Subscribing to events")
+		sub := relay.Subscribe(ctx, svc.createFilters())
+		err = svc.StartSubscription(ctx, sub)
+		if err != nil {
+			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
+			logrus.WithError(err).Error("Got an error from the relay. Reconnecting...")
+			continue
+		}
+		//err being nil means that the context was canceled and we should exit the program.
+		break
+	}
+	logrus.Info("Graceful shutdown completed. Goodbye.")
+}
+
+func (svc *Service) createFilters() nostr.Filters {
 	filter := nostr.Filter{
 		Tags:  nostr.TagMap{"p": []string{svc.cfg.IdentityPubkey}},
 		Kinds: []int{NIP_47_REQUEST_KIND},
@@ -96,16 +116,5 @@ func main() {
 	if svc.cfg.ClientPubkey != "" {
 		filter.Authors = []string{svc.cfg.ClientPubkey}
 	}
-	filters = []nostr.Filter{filter}
-	logrus.Info(filters)
-
-	sub := relay.Subscribe(ctx, filters)
-	logrus.Info("listening to events")
-	wg.Add(1)
-	go func() {
-		svc.StartSubscription(ctx, sub)
-		wg.Done()
-	}()
-	wg.Wait()
-	logrus.Info("Graceful shutdown completed. Goodbye.")
+	return []nostr.Filter{filter}
 }

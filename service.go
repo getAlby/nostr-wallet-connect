@@ -18,12 +18,16 @@ type Service struct {
 	ReceivedEOS bool
 }
 
-func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) {
+func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
 		select {
+		case notice := <-sub.Relay.Notices:
+			logrus.Infof("Received a notice %s", notice)
+		case conErr := <-sub.Relay.ConnectionError:
+			return conErr
 		case <-ctx.Done():
 			logrus.Info("Exiting subscription.")
-			return
+			return nil
 		case <-sub.EndOfStoredEvents:
 			logrus.Info("Received EOS")
 			svc.ReceivedEOS = true
