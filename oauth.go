@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"time"
 
+	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
+	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +36,7 @@ type AlbyOAuthService struct {
 	oauthConf *oauth2.Config
 	db        *gorm.DB
 	e         *echo.Echo
+	Logger    *logrus.Logger
 }
 
 //go:embed public/*
@@ -83,6 +86,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		cfg:       svc.cfg,
 		oauthConf: conf,
 		db:        svc.db,
+		Logger:    &svc.Logger,
 	}
 
 	e := echo.New()
@@ -95,10 +99,14 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		templates: templates,
 	}
 	e.HideBanner = true
+	e.Logger = echologrus.GetEchoLogger()
+	e.Use(echologrus.Middleware())
+
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(middleware.Logger())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
+
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
@@ -117,20 +125,46 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
-	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+		}).Errorf("App not found: %v", err)
 		return "", err
 	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"bolt11":       payReq,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Processing payment request")
 	user := app.User
-	client := svc.oauthConf.Client(ctx, &oauth2.Token{
+	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.Expiry,
-	})
+	}).Token()
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Token error: %v", err)
+		return "", err
+	}
+	// we always update the user's token for future use
+	// the oauth library handles the token refreshing
+	user.AccessToken = tok.AccessToken
+	user.RefreshToken = tok.RefreshToken
+	user.Expiry = tok.Expiry // TODO; probably needs some calculation
+	svc.db.Save(&user)
+	client := svc.oauthConf.Client(ctx, tok)
+
 	body := bytes.NewBuffer([]byte{})
 	payload := &PayRequest{
 		Invoice: payReq,
@@ -138,6 +172,12 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	err = json.NewEncoder(body).Encode(payload)
 	resp, err := client.Post(fmt.Sprintf("%s/payments/bolt11", svc.cfg.AlbyAPIURL), "application/json", body)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to pay invoice: %v", err)
 		return "", err
 	}
 	//todo non-200 status code handling
@@ -147,9 +187,20 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		return "", err
 	}
 	if resp.StatusCode < 300 {
-		logrus.Infof("Sent payment with hash %s preimage %s", responsePayload.PaymentHash, responsePayload.Preimage)
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
 	} else {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Payment failed %v", err)
 		return "", errors.New("Failed")
 	}
 }

@@ -16,39 +16,46 @@ type Service struct {
 	db          *gorm.DB
 	lnClient    LNClient
 	ReceivedEOS bool
+	Logger      logrus.Logger
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
 		select {
 		case notice := <-sub.Relay.Notices:
-			logrus.Infof("Received a notice %s", notice)
+			svc.Logger.Infof("Received a notice %s", notice)
 		case conErr := <-sub.Relay.ConnectionError:
 			return conErr
 		case <-ctx.Done():
-			logrus.Info("Exiting subscription.")
+			svc.Logger.Info("Exiting subscription.")
 			return nil
 		case <-sub.EndOfStoredEvents:
-			logrus.Info("Received EOS")
+			svc.Logger.Info("Received EOS")
 			svc.ReceivedEOS = true
 		case event := <-sub.Events:
 			resp, err := svc.HandleEvent(ctx, event)
 			if err != nil {
-				logrus.Error(err)
+				svc.Logger.Error(err)
 				continue
 			}
 			if resp != nil {
 				nostrEvent := NostrEvent{}
 				result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
 				if result.Error != nil {
-					logrus.Error(result.Error)
+					svc.Logger.Error(result.Error)
 					continue
 				}
 				status := sub.Relay.Publish(ctx, *resp)
 				nostrEvent.State = "replied" // TODO: check if publish was successful
 				nostrEvent.ReplyId = resp.ID
 				svc.db.Save(&nostrEvent)
-				logrus.Infof("published event, status %v", status)
+				svc.Logger.WithFields(logrus.Fields{
+					"nostrEventId": nostrEvent.ID,
+					"eventId":      event.ID,
+					"status":       status,
+					"replyEventId": resp.ID,
+					"appId":        nostrEvent.AppId,
+				}).Info("Published reply")
 			}
 		}
 	}
@@ -59,11 +66,18 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if !svc.ReceivedEOS {
 		return nil, nil
 	}
+	svc.Logger.WithFields(logrus.Fields{
+		"eventId":   event.ID,
+		"eventKind": event.Kind,
+	}).Info("Processing Event")
+
 	// make sure we don't know the event, yet
 	nostrEvent := NostrEvent{}
 	findEventResult := svc.db.Where("nostr_id = ?", event.ID).Find(&nostrEvent)
 	if findEventResult.RowsAffected != 0 {
-		logrus.Warnf("Event %s already processed", event.ID)
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId": event.ID,
+		}).Warn("Event already processed")
 		return nil, nil
 	}
 	app := App{}
@@ -74,6 +88,12 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, err
 	}
 
+	svc.Logger.WithFields(logrus.Fields{
+		"eventId":   event.ID,
+		"eventKind": event.Kind,
+		"appId":     app.ID,
+	}).Info("App found for nostr event")
+
 	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
 	if err != nil {
 		return nil, err
@@ -81,17 +101,33 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	//todo: define and handle connect requests
 	bolt11, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("Failed to decrypt content: %v", err)
 		return nil, err
 	}
 
 	nostrEvent = NostrEvent{App: app, NostrId: event.ID, Content: event.Content, State: "received"}
 	insertNostrEventResult := svc.db.Create(&nostrEvent)
 	if insertNostrEventResult.Error != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("Failed to save nostr event: %v", err)
 		return nil, insertNostrEventResult.Error
 	}
 
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+			"bolt11":    bolt11,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
 		return nil, err
 	}
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
@@ -100,8 +136,21 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, insertPaymentResult.Error
 	}
 
+	svc.Logger.WithFields(logrus.Fields{
+		"eventId":   event.ID,
+		"eventKind": event.Kind,
+		"appId":     app.ID,
+		"bolt11":    bolt11,
+	}).Info("Sending payment")
+
 	preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+			"bolt11":    bolt11,
+		}).Info("Failed to send payment: %v", err)
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(NIP_47_ERROR_RESPONSE_KIND, event, err.Error(), ss)
