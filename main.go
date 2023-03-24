@@ -78,23 +78,23 @@ func main() {
 			MacaroonFile: cfg.LNDMacaroonFile,
 		})
 		if err != nil {
-			log.Fatal(err)
+			svc.Logger.Fatal(err)
 		}
 		info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
 		if err != nil {
-			log.Fatal(err)
+			svc.Logger.Fatal(err)
 		}
-		log.Infof("Connected to LND - alias %s", info.Alias)
+		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(&svc)
 		if err != nil {
-			log.Fatal(err)
+			svc.Logger.Fatal(err)
 		}
 		wg.Add(1)
 		go func() {
 			oauthService.Start(ctx)
-			log.Info("OAuth server exited")
+			svc.Logger.Info("OAuth server exited")
 			wg.Done()
 		}()
 		svc.lnClient = oauthService
@@ -108,15 +108,15 @@ func main() {
 		filter.Authors = []string{svc.cfg.ClientPubkey}
 	}
 	filters = []nostr.Filter{filter}
-	log.Info(filters)
+	svc.Logger.Info(filters)
 
 	sub := relay.Subscribe(ctx, filters)
-	log.Info("listening to events")
+	svc.Logger.Info("listening to events")
 	wg.Add(1)
 	go func() {
 		svc.StartSubscription(ctx, sub)
 		wg.Done()
 	}()
 	wg.Wait()
-	log.Info("Graceful shutdown completed. Goodbye.")
+	svc.Logger.Info("Graceful shutdown completed. Goodbye.")
 }
