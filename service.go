@@ -19,12 +19,16 @@ type Service struct {
 	Logger      logrus.Logger
 }
 
-func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) {
+func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
 		select {
+		case notice := <-sub.Relay.Notices:
+			svc.Logger.Infof("Received a notice %s", notice)
+		case conErr := <-sub.Relay.ConnectionError:
+			return conErr
 		case <-ctx.Done():
 			svc.Logger.Info("Exiting subscription.")
-			return
+			return nil
 		case <-sub.EndOfStoredEvents:
 			svc.Logger.Info("Received EOS")
 			svc.ReceivedEOS = true

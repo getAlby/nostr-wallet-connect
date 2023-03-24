@@ -75,7 +75,6 @@ require (
 	github.com/jackc/pgtype v1.13.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jessevdk/go-flags v1.5.0 // indirect
-	github.com/jinzhu/gorm v1.9.10 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jonboulle/clockwork v0.3.0 // indirect
