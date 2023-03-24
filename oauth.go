@@ -143,11 +143,28 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		"userId":       app.User.ID,
 	}).Info("Processing payment request")
 	user := app.User
-	client := svc.oauthConf.Client(ctx, &oauth2.Token{
+	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.Expiry,
-	})
+	}).Token()
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Token error: %v", err)
+		return "", err
+	}
+	// we always update the user's token for future use
+	// the oauth library handles the token refreshing
+	user.AccessToken = tok.AccessToken
+	user.RefreshToken = tok.RefreshToken
+	user.Expiry = tok.Expiry // TODO; probably needs some calculation
+	svc.db.Save(&user)
+	client := svc.oauthConf.Client(ctx, tok)
+
 	body := bytes.NewBuffer([]byte{})
 	payload := &PayRequest{
 		Invoice: payReq,
