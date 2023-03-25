@@ -248,9 +248,15 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	lastEvent := NostrEvent{}
+	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	var eventsCount int64
+	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":  app,
-		"User": user,
+		"App":         app,
+		"User":        user,
+		"LastEvent":   lastEvent,
+		"EventsCount": eventsCount,
 	})
 }
 
