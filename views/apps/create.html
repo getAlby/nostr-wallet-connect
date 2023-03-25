@@ -1,0 +1,72 @@
+{{define "body"}}
+<a class="mb-6 block" href="/apps">
+  <i class="fas fa-arrow-left" aria-hidden="true"></i>
+  All sessions
+</a>
+
+<div class="bg-green-100 border-t-4 border-green-500 rounded-b px-4 py-3 shadow-md mb-8" role="alert">
+  <div class="flex">
+    <div class="py-1"><svg class="fill-current h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+        <path
+          d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z">
+        </path>
+      </svg></div>
+    <div>
+      <p class="font-bold">Session created</p>
+      <p class="text-sm">The application session was successfully created. Please connect your app now</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="font-bold text-2xl font-headline mb-2">{{.Name}}</h2>
+<hr class="mb-4 mt-4">
+
+<h3 class="text-xl font-headline mb-2">Connect</h3>
+<p class="mb-4">
+  Use the pairing secret to connect to your wallet. <br />
+</p>
+
+<p class="text-l font-bold">
+  <a onclick="document.getElementById('pairing-details').classList.toggle('hidden');false"
+    class=" inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
+    href="#">
+    <i class="fas fa-key mr-3" aria-hidden="true"></i>
+    Show pairing details
+  </a>
+</p>
+
+<div class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6 " style="width:384px"
+  id="pairing-details">
+  <div id="connect-qrcode">
+  </div>
+  <p class="my-4">
+    <input type="text" id="pairing-input" value="{{.PairingUri}}" class="text-gray-400 text-sm border-slate-200"
+      style="width:290px" />
+    <a href="#" id="copy-link"><i id="copy-icon" class="fas fa-copy mr-3" aria-hidden="true"></i></a>
+  </p>
+  <span class="text-slate-400 text-sm">
+    ⚠️ <span class="text-yellow-600">This pairing secret will only be shown once.</span>
+  </span>
+
+</div>
+
+<script type="text/javascript" src="/public/js/qrcode.min.js"></script>
+<script type="text/javascript">
+  window.addEventListener("DOMContentLoaded", (event) => {
+    new QRCode(document.getElementById("connect-qrcode"), {
+      text: "{{.PairingUri}}",
+      width: 384,
+      height: 384
+    });
+  });
+  document.getElementById('copy-link').addEventListener('click', async (event) => {
+    event.preventDefault();
+    const i = document.getElementById('copy-icon');
+    const value = document.getElementById('pairing-input').value;
+    await navigator.clipboard.writeText(value);
+    i.classList.toggle('fa-copy');
+    i.classList.toggle('fa-check');
+  });
+</script>
+
+{{end}}
