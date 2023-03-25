@@ -24,8 +24,9 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 		select {
 		case notice := <-sub.Relay.Notices:
 			svc.Logger.Infof("Received a notice %s", notice)
-		case conErr := <-sub.Relay.ConnectionError:
-			return conErr
+		// FIXME:
+		//case conErr := <-sub.Relay.ConnectionError:
+		//	return conErr
 		case <-ctx.Done():
 			svc.Logger.Info("Exiting subscription.")
 			return nil
@@ -45,17 +46,30 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 					svc.Logger.Error(result.Error)
 					continue
 				}
-				status := sub.Relay.Publish(ctx, *resp)
-				nostrEvent.State = "replied" // TODO: check if publish was successful
+				status, err := sub.Relay.Publish(ctx, *resp)
+				if err != nil || status < 0 {
+					svc.Logger.WithFields(logrus.Fields{
+						"nostrEventId": nostrEvent.ID,
+						"eventId":      event.ID,
+						"status":       status,
+						"replyEventId": resp.ID,
+						"appId":        nostrEvent.AppId,
+					}).Errorf("Failed to reply: %v", err)
+					nostrEvent.State = "replyError"
+				} else {
+					svc.Logger.WithFields(logrus.Fields{
+						"nostrEventId": nostrEvent.ID,
+						"eventId":      event.ID,
+						"status":       status,
+						"replyEventId": resp.ID,
+						"appId":        nostrEvent.AppId,
+					}).Info("Published reply successfully")
+					nostrEvent.State = "replied"
+				}
 				nostrEvent.ReplyId = resp.ID
 				svc.db.Save(&nostrEvent)
-				svc.Logger.WithFields(logrus.Fields{
-					"nostrEventId": nostrEvent.ID,
-					"eventId":      event.ID,
-					"status":       status,
-					"replyEventId": resp.ID,
-					"appId":        nostrEvent.AppId,
-				}).Info("Published reply")
+			} else {
+				svc.Logger.Error("Response was nil")
 			}
 		}
 	}
