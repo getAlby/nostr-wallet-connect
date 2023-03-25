@@ -19,6 +19,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
@@ -94,6 +95,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
+	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -275,8 +277,33 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 
-	svc.db.Model(&user).Association("Apps").Append(&App{Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")})
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	name := c.FormValue("name")
+	var pairingPublicKey string
+	var pairingSecretKey string
+	if c.FormValue("pubkey") == "" {
+		pairingSecretKey = nostr.GeneratePrivateKey()
+		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
+	} else {
+		pairingPublicKey = c.FormValue("pubkey")
+	}
+
+	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
+	if err == nil {
+		pairingUri := fmt.Sprintf("nostrwalletconnect://%s?relay=%s&key=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey)
+		svc.Logger.Infof("%s", pairingSecretKey)
+		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+			"PairingUri":    pairingUri,
+			"PairingSecret": pairingSecretKey,
+			"Pubkey":        pairingPublicKey,
+			"Name":          name,
+		})
+	} else {
+		svc.Logger.WithFields(logrus.Fields{
+			"pairingPublicKey": pairingPublicKey,
+			"name":             name,
+		}).Errorf("Failed to save app: %v", err)
+		return c.Redirect(http.StatusMovedPermanently, "/apps")
+	}
 }
 
 func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
