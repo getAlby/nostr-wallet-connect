@@ -22,6 +22,11 @@ type Service struct {
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
 	for {
 		select {
+		case err := <-sub.Relay.Errors:
+			svc.Logger.Errorf("Received an error %s", err)
+			sub.Relay.Connection.Close()
+			time.Sleep(5 * time.Second)
+			return err
 		case notice := <-sub.Relay.Notices:
 			svc.Logger.Infof("Received a notice %s", notice)
 		// FIXME:

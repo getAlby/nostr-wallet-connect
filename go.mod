@@ -2,6 +2,8 @@ module github.com/getAlby/nostr-wallet-connect
 
 go 1.20
 
+replace github.com/nbd-wtf/go-nostr v0.15.1 => github.com/bumi/go-nostr v0.0.0-20230325184917-7c247d40ba9a
+
 require (
 	github.com/davrux/echo-logrus/v4 v4.0.3
 	github.com/gorilla/sessions v1.2.1
@@ -79,6 +81,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jonboulle/clockwork v0.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/jrick/logrotate v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kkdai/bstream v1.0.0 // indirect
@@ -109,6 +112,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.40.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/recws-org/recws v1.4.0 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.4.0 // indirect
