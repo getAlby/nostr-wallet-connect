@@ -45,7 +45,7 @@ func main() {
 	// Migrate the schema
 	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
 	if err != nil {
-		log.Fatalf("Failed migrate DB %v", err)
+		log.Errorf("Failed migrate DB %v", err)
 	}
 
 	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
