@@ -7,11 +7,11 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
-	github.com/nbd-wtf/go-nostr v0.13.2
+	github.com/nbd-wtf/go-nostr v0.15.1
 	github.com/nbd-wtf/ln-decodepay v1.11.1
 	golang.org/x/oauth2 v0.4.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
-	gorm.io/gorm v1.23.8
+	gopkg.in/DataDog/dd-trace-go.v1 v1.48.0
+	gorm.io/gorm v1.24.6
 )
 
 require (
