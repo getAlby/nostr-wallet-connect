@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -104,7 +106,15 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	secret := svc.cfg.COOKIE_SECRET
+	if secret == "" {
+		svc.Logger.Warn("Using random cookie secret")
+		secret, err = randomHex(20)
+		if err != nil {
+			svc.Logger.Fatal(err)
+		}
+	}
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(secret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
@@ -361,4 +371,12 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(http.StatusMovedPermanently, "/apps")
+}
+
+func randomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
