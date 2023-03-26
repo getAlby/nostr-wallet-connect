@@ -2,7 +2,7 @@ module github.com/getAlby/nostr-wallet-connect
 
 go 1.20
 
-replace github.com/nbd-wtf/go-nostr v0.15.1 => github.com/bumi/go-nostr v0.0.0-20230325184917-7c247d40ba9a
+replace github.com/nbd-wtf/go-nostr v0.15.1 => github.com/bumi/go-nostr v0.0.0-20230326085932-fd75ca96c974
 
 require (
 	github.com/davrux/echo-logrus/v4 v4.0.3
@@ -42,6 +42,8 @@ require (
 	github.com/btcsuite/winsvc v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cockroachdb/datadriven v1.0.0 // indirect
+	github.com/cockroachdb/errors v1.8.1 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -173,7 +175,7 @@ require (
 )
 
 require (
-	github.com/SaveTheRbtz/generic-sync-map-go v0.0.0-20220414055132-a37292614db8 // indirect
+	github.com/SaveTheRbtz/generic-sync-map-go v0.0.0-20230201052002-6c5833b989be // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
@@ -185,7 +187,7 @@ require (
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/valyala/fastjson v1.6.3 // indirect
-	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
+	github.com/valyala/fastjson v1.6.4 // indirect
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 // indirect
 	gorm.io/driver/postgres v1.4.4
 )
