@@ -30,14 +30,18 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        mono: defaultTheme.fontFamily.mono,
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
       colors: {
+        "alby-grey": "#272828",
+        "alby-yellow": "#FFDE6E",
+        "alby-yellow-light": "#FDF0D5",
         bitcoin: "#F7931A",
-        coldGrey: "#C5C7C8",
+        "cold-grey": "#C5C7C8",
         light: "#F4F4F4",
         primary: "#F8C455",
-        warmGrey: "#D2D2D1",
+        "warm-grey": "#D2D2D1",
 
         // Material Design Surface Colors
         "surface-00dp": surfaceColor,
@@ -85,4 +89,4 @@ module.exports = {
     require("@tailwindcss/aspect-ratio"),
     require("@tailwindcss/typography"),
   ],
-}
+};
