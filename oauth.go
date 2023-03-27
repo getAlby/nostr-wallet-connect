@@ -104,7 +104,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
@@ -339,24 +339,24 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 	tok, err := svc.oauthConf.Exchange(c.Request().Context(), code)
 	if err != nil {
-		svc.e.Logger.Error(err)
+		svc.Logger.WithError(err).Error("Failed to exchange token")
 		return err
 	}
 	client := svc.oauthConf.Client(c.Request().Context(), tok)
 	res, err := client.Get(fmt.Sprintf("%s/user/me", svc.cfg.AlbyAPIURL))
 	if err != nil {
-		svc.e.Logger.Error(err)
+		svc.Logger.WithError(err).Error("Failed to fetch /me")
 		return err
 	}
 	me := AlbyMe{}
 	err = json.NewDecoder(res.Body).Decode(&me)
 	if err != nil {
-		svc.e.Logger.Error(err)
+		svc.Logger.WithError(err).Error("Failed to decode API response")
 		return err
 	}
 	_, pubkey, err := nip19.Decode(me.NPub)
 	if err != nil {
-		svc.e.Logger.Error(err)
+		svc.Logger.WithError(err).Error("Failed to decode npub")
 		return err
 	}
 
