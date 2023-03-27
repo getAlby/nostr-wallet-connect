@@ -27,7 +27,7 @@
 </p>
 
 <p class="text-l font-bold">
-  <a onclick="document.getElementById('pairing-details').classList.toggle('hidden');false"
+  <a onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false"
     class=" inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
     href="#">
     <i class="fas fa-key mr-3" aria-hidden="true"></i>
@@ -44,9 +44,11 @@
       style="width:290px" />
     <a href="#" id="copy-link"><i id="copy-icon" class="fas fa-copy mr-3" aria-hidden="true"></i></a>
   </p>
-  <span class="text-slate-400 text-sm">
-    ⚠️ <span class="text-yellow-600">This pairing secret will only be shown once.</span>
-  </span>
+  <p class="text-slate-400 text-sm">
+    ⚠️ <span class="text-yellow-600">Use this secret only with apps you trust.</span>
+    <br />
+    <span class="text-yellow-600">This pairing secret will only be shown once.</span>
+  </p>
 
 </div>
 
