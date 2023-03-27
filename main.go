@@ -54,7 +54,7 @@ func main() {
 		db:  db,
 	}
 
-	tracer.Start(tracer.WithAgentAddr(cfg.DatadogAgentUrl))
+	tracer.Start(tracer.WithService("nostr-wallet-connect"))
 	defer tracer.Stop()
 
 	echologrus.Logger = log.New()
