@@ -37,12 +37,19 @@
 
 <div class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6 " style="width:384px"
   id="pairing-details">
-  <div id="connect-qrcode">
-  </div>
+  <a href="{{.PairingUri}}">
+    <div id="connect-qrcode">
+    </div>
+  </a>
   <p class="my-4">
     <input type="text" id="pairing-input" value="{{.PairingUri}}" class="text-gray-400 text-sm border-slate-200"
-      style="width:290px" />
-    <a href="#" id="copy-link"><i id="copy-icon" class="fas fa-copy mr-3" aria-hidden="true"></i></a>
+      style="width:280px" />
+    <a href="#" id="copy-link">
+      <i id="copy-icon" class="fas fa-copy mr-2" aria-hidden="true"></i>
+    </a>
+    <a href="{{.PairingUri}}">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i>
+    </a>
   </p>
   <p class="text-slate-400 text-sm">
     ⚠️ <span class="text-yellow-600">Use this secret only with apps you trust.</span>

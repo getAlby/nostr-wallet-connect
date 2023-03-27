@@ -291,7 +291,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 
 	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
-		pairingUri := fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey)
+		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 			"PairingUri":    pairingUri,
 			"PairingSecret": pairingSecretKey,
