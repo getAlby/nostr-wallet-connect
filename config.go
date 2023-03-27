@@ -7,7 +7,7 @@ const (
 
 type Config struct {
 	NostrSecretKey   string `envconfig:"NOSTR_PRIVKEY" required:"true"`
-	COOKIE_SECRET    string `envconfig:"COOKIE_SECRET"`
+	COOKIE_SECRET    string `envconfig:"COOKIE_SECRET" required:"true"`
 	ClientPubkey     string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay            string `envconfig:"RELAY" required:"true"`
 	LNBackendType    string `envconfig:"LN_BACKEND_TYPE" default:"ALBY"`
