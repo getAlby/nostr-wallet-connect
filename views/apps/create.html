@@ -35,7 +35,7 @@
   </a>
 </p>
 
-<div class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6 " style="width:384px"
+<div class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6 " style="width:432px"
   id="pairing-details">
   <a href="{{.PairingUri}}">
     <div id="connect-qrcode">
@@ -43,7 +43,7 @@
   </a>
   <p class="my-4">
     <input type="text" id="pairing-input" value="{{.PairingUri}}" class="text-gray-400 text-sm border-slate-200"
-      style="width:280px" />
+      style="width:320px" />
     <a href="#" id="copy-link">
       <i id="copy-icon" class="fas fa-copy mr-2" aria-hidden="true"></i>
     </a>
@@ -51,7 +51,7 @@
       <i class="fa-solid fa-arrow-up-right-from-square"></i>
     </a>
   </p>
-  <p class="text-slate-400 text-sm">
+  <p class="text-slate-400 text-sm text-center">
     ⚠️ <span class="text-yellow-600">Use this secret only with apps you trust.</span>
     <br />
     <span class="text-yellow-600">This pairing secret will only be shown once.</span>
@@ -59,14 +59,13 @@
 
 </div>
 
-<script type="text/javascript" src="/public/js/qrcode.min.js"></script>
+<script type="text/javascript" src="/public/js/qr-creator.js"></script>
 <script type="text/javascript">
   window.addEventListener("DOMContentLoaded", (event) => {
-    new QRCode(document.getElementById("connect-qrcode"), {
+    QrCreator.render({
       text: "{{.PairingUri}}",
-      width: 384,
-      height: 384
-    });
+      size: 384 // in pixels
+    }, document.getElementById("connect-qrcode"));
   });
   document.getElementById('copy-link').addEventListener('click', async (event) => {
     event.preventDefault();
