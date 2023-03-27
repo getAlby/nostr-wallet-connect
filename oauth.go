@@ -11,7 +11,6 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"net/url"
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -19,9 +18,9 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
-	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
@@ -94,6 +93,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
+	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -115,7 +115,6 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	e.GET("/alby/callback", albySvc.CallbackHandler)
 	e.GET("/apps", albySvc.AppsListHandler)
 	e.GET("/apps/new", albySvc.AppsNewHandler)
-	e.GET("/qr", albySvc.QRHandler)
 	e.GET("/apps/:id", albySvc.AppsShowHandler)
 	e.POST("/apps", albySvc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", albySvc.AppsDeleteHandler)
@@ -229,9 +228,8 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	apps := user.Apps
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
-		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
-		"Apps":               apps,
-		"User":               user,
+		"Apps": apps,
+		"User": user,
 	})
 }
 
@@ -246,9 +244,15 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	lastEvent := NostrEvent{}
+	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	var eventsCount int64
+	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":  app,
-		"User": user,
+		"App":         app,
+		"User":        user,
+		"LastEvent":   lastEvent,
+		"EventsCount": eventsCount,
 	})
 }
 
@@ -275,8 +279,32 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 
-	svc.db.Model(&user).Association("Apps").Append(&App{Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")})
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	name := c.FormValue("name")
+	var pairingPublicKey string
+	var pairingSecretKey string
+	if c.FormValue("pubkey") == "" {
+		pairingSecretKey = nostr.GeneratePrivateKey()
+		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
+	} else {
+		pairingPublicKey = c.FormValue("pubkey")
+	}
+
+	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
+	if err == nil {
+		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
+		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+			"PairingUri":    pairingUri,
+			"PairingSecret": pairingSecretKey,
+			"Pubkey":        pairingPublicKey,
+			"Name":          name,
+		})
+	} else {
+		svc.Logger.WithFields(logrus.Fields{
+			"pairingPublicKey": pairingPublicKey,
+			"name":             name,
+		}).Errorf("Failed to save app: %v", err)
+		return c.Redirect(http.StatusMovedPermanently, "/apps")
+	}
 }
 
 func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
@@ -305,14 +333,6 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 
 	url := svc.oauthConf.AuthCodeURL("")
 	return c.Redirect(http.StatusMovedPermanently, url)
-}
-
-func (svc *AlbyOAuthService) QRHandler(c echo.Context) error {
-	img, err := qrcode.Encode(fmt.Sprintf("nostrwalletconnect://%s?relay=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay), qrcode.High, 256)
-	if err != nil {
-		return err
-	}
-	return c.Blob(http.StatusOK, "img/png", img)
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
