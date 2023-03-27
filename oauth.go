@@ -11,18 +11,19 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
+	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
-	"github.com/skip2/go-qrcode"
 	"golang.org/x/oauth2"
+	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 	"gorm.io/gorm"
 )
 
@@ -35,6 +36,7 @@ type AlbyOAuthService struct {
 	oauthConf *oauth2.Config
 	db        *gorm.DB
 	e         *echo.Echo
+	Logger    *logrus.Logger
 }
 
 //go:embed public/*
@@ -73,8 +75,9 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		//Todo: do we really need all these permissions?
 		Scopes: []string{"account:read", "payments:send", "invoices:read", "transactions:read", "invoices:create"},
 		Endpoint: oauth2.Endpoint{
-			TokenURL: svc.cfg.OAuthTokenUrl,
-			AuthURL:  svc.cfg.OAuthAuthUrl,
+			TokenURL:  svc.cfg.OAuthTokenUrl,
+			AuthURL:   svc.cfg.OAuthAuthUrl,
+			AuthStyle: 2, // use HTTP Basic Authorization https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
 		},
 		RedirectURL: svc.cfg.OAuthRedirectUrl,
 	}
@@ -83,6 +86,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		cfg:       svc.cfg,
 		oauthConf: conf,
 		db:        svc.db,
+		Logger:    &svc.Logger,
 	}
 
 	e := echo.New()
@@ -90,15 +94,20 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
+	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
 	e.HideBanner = true
+	e.Logger = echologrus.GetEchoLogger()
+	e.Use(echologrus.Middleware())
+
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(middleware.Logger())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
+
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
@@ -107,7 +116,6 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	e.GET("/alby/callback", albySvc.CallbackHandler)
 	e.GET("/apps", albySvc.AppsListHandler)
 	e.GET("/apps/new", albySvc.AppsNewHandler)
-	e.GET("/qr", albySvc.QRHandler)
 	e.GET("/apps/:id", albySvc.AppsShowHandler)
 	e.POST("/apps", albySvc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", albySvc.AppsDeleteHandler)
@@ -117,20 +125,46 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 }
 
 func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
-	logrus.Infof("Processing payment request %s from %s", payReq, senderPubkey)
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: senderPubkey,
 	}).Error
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+		}).Errorf("App not found: %v", err)
 		return "", err
 	}
+	svc.Logger.WithFields(logrus.Fields{
+		"senderPubkey": senderPubkey,
+		"bolt11":       payReq,
+		"appId":        app.ID,
+		"userId":       app.User.ID,
+	}).Info("Processing payment request")
 	user := app.User
-	client := svc.oauthConf.Client(ctx, &oauth2.Token{
+	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.Expiry,
-	})
+	}).Token()
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Token error: %v", err)
+		return "", err
+	}
+	// we always update the user's token for future use
+	// the oauth library handles the token refreshing
+	user.AccessToken = tok.AccessToken
+	user.RefreshToken = tok.RefreshToken
+	user.Expiry = tok.Expiry // TODO; probably needs some calculation
+	svc.db.Save(&user)
+	client := svc.oauthConf.Client(ctx, tok)
+
 	body := bytes.NewBuffer([]byte{})
 	payload := &PayRequest{
 		Invoice: payReq,
@@ -138,6 +172,12 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	err = json.NewEncoder(body).Encode(payload)
 	resp, err := client.Post(fmt.Sprintf("%s/payments/bolt11", svc.cfg.AlbyAPIURL), "application/json", body)
 	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Failed to pay invoice: %v", err)
 		return "", err
 	}
 	//todo non-200 status code handling
@@ -147,9 +187,20 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		return "", err
 	}
 	if resp.StatusCode < 300 {
-		logrus.Infof("Sent payment with hash %s preimage %s", responsePayload.PaymentHash, responsePayload.Preimage)
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
 	} else {
+		svc.Logger.WithFields(logrus.Fields{
+			"senderPubkey": senderPubkey,
+			"bolt11":       payReq,
+			"appId":        app.ID,
+			"userId":       app.User.ID,
+		}).Errorf("Payment failed %v", err)
 		return "", errors.New("Failed")
 	}
 }
@@ -160,8 +211,6 @@ func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 
 func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["user_id"] = ""
-	delete(sess.Values, "user_id")
 	sess.Options = &sessions.Options{
 		MaxAge: -1,
 	}
@@ -180,9 +229,8 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	apps := user.Apps
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
-		"NostrWalletConnect": fmt.Sprintf("%s?relay=%s", svc.cfg.IdentityPubkey, url.QueryEscape(svc.cfg.Relay)),
-		"Apps":               apps,
-		"User":               user,
+		"Apps": apps,
+		"User": user,
 	})
 }
 
@@ -197,13 +245,18 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
-
 	appPermission := AppPermission{}
 	svc.db.Where("app_id = ? AND nostr_kind = ?", app.ID, NIP_47_REQUEST_KIND).First(&appPermission)
+	lastEvent := NostrEvent{}
+	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	var eventsCount int64
+	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":           app,
-		"AppPermission": appPermission,
 		"User":          user,
+		"AppPermission": appPermission,
+		"LastEvent":     lastEvent,
+		"EventsCount":   eventsCount,
 	})
 }
 
@@ -230,19 +283,50 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 
-	app := App{User: user, Name: c.FormValue("name"), NostrPubkey: c.FormValue("pubkey")}
-	svc.db.Create(&app)
+	name := c.FormValue("name")
+	var pairingPublicKey string
+	var pairingSecretKey string
+	if c.FormValue("pubkey") == "" {
+		pairingSecretKey = nostr.GeneratePrivateKey()
+		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
+	} else {
+		pairingPublicKey = c.FormValue("pubkey")
+	}
+
+	app := &App{User: user, Name: name, NostrPubkey: pairingPublicKey}
+	result := svc.db.Create(&app)
+	if result.Error != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"pairingPublicKey": pairingPublicKey,
+			"name":             name,
+		}).WithError(result.Error).Errorf("Failed to save app")
+		return c.Redirect(http.StatusMovedPermanently, "/apps")
+	}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmoutPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmoutPerTransaction"))
 	appPermission := AppPermission{
-		App:                    app,
+		App:                    *app,
 		NostrKind:              NIP_47_REQUEST_KIND,
 		MaxAmoutPerTransaction: maxAmoutPerTransaction,
 		MaxAmount:              maxAmount,
 	}
-	result := svc.db.Create(&appPermission)
+	result = svc.db.Create(&appPermission)
 	logrus.Info("%v", result.Error)
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	if result.Error != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"pairingPublicKey": pairingPublicKey,
+			"name":             name,
+		}).WithError(result.Error).Errorf("Failed to save app permission")
+		return c.Redirect(http.StatusMovedPermanently, "/apps")
+	}
+
+	pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
+	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+		"PairingUri":    pairingUri,
+		"PairingSecret": pairingSecretKey,
+		"Pubkey":        pairingPublicKey,
+		"Name":          name,
+	})
 }
 
 func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
@@ -261,16 +345,17 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
+	// clear current session
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["user_id"] = ""
+	delete(sess.Values, "user_id")
+	sess.Options = &sessions.Options{
+		MaxAge: -1,
+	}
+	sess.Save(c.Request(), c.Response())
+
 	url := svc.oauthConf.AuthCodeURL("")
 	return c.Redirect(http.StatusMovedPermanently, url)
-}
-
-func (svc *AlbyOAuthService) QRHandler(c echo.Context) error {
-	img, err := qrcode.Encode(fmt.Sprintf("nostrwalletconnect://%s?relay=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay), qrcode.High, 256)
-	if err != nil {
-		return err
-	}
-	return c.Blob(http.StatusOK, "img/png", img)
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {

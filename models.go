@@ -28,9 +28,9 @@ type User struct {
 }
 
 type App struct {
-	ID          uint `gorm:"primaryKey"`
-	UserId      uint `gorm:"index" validate:"required"`
-	User        User
+	ID          uint   `gorm:"primaryKey"`
+	UserId      uint   `gorm:"index" validate:"required"`
+	User        User   `gorm:"constraint:OnDelete:CASCADE"`
 	Name        string `validate:"required"`
 	Description string
 	NostrPubkey string `gorm:"index"`
@@ -45,7 +45,7 @@ type SumResult struct {
 type AppPermission struct {
 	ID                     uint `gorm:"primaryKey"`
 	AppId                  uint `gorm:"index" validate:"required"`
-	App                    App  `gorm:"constraint:OnDelete:CASCADE;"`
+	App                    App  `gorm:"constraint:OnDelete:CASCADE"`
 	NostrKind              int  `gorm:"index" validate:"required"`
 	MaxAmount              int
 	MaxAmoutPerTransaction int
@@ -56,7 +56,7 @@ type AppPermission struct {
 type NostrEvent struct {
 	ID        uint   `gorm:"primaryKey"`
 	AppId     uint   `gorm:"index" validate:"required"`
-	App       App    `gorm:"constraint:OnDelete:CASCADE;"`
+	App       App    `gorm:"constraint:OnDelete:CASCADE"`
 	NostrId   string `gorm:"uniqueIndex" validate:"required"`
 	ReplyId   string
 	Content   string
@@ -67,11 +67,11 @@ type NostrEvent struct {
 }
 
 type Payment struct {
-	ID             uint       `gorm:"primaryKey"`
-	AppId          uint       `gorm:"index" validate:"required"`
-	App            App        `gorm:"constraint:OnDelete:CASCADE;"`
-	NostrEventId   uint       `gorm:"index" validate:"required"`
-	NostrEvent     NostrEvent `gorm:"constraint:OnDelete:CASCADE;"`
+	ID             uint `gorm:"primaryKey"`
+	AppId          uint `gorm:"index" validate:"required"`
+	App            App  `gorm:"constraint:OnDelete:CASCADE"`
+	NostrEventId   uint `gorm:"index" validate:"required"`
+	NostrEvent     NostrEvent
 	Amount         uint
 	PaymentRequest string
 	Preimage       string
