@@ -30,7 +30,7 @@ type User struct {
 type App struct {
 	ID          uint   `gorm:"primaryKey"`
 	UserId      uint   `gorm:"index" validate:"required"`
-	User        User   `gorm:"constraint:OnDelete:CASCADE`
+	User        User   `gorm:"constraint:OnDelete:CASCADE"`
 	Name        string `validate:"required"`
 	Description string
 	NostrPubkey string `gorm:"index"`
@@ -41,7 +41,7 @@ type App struct {
 type NostrEvent struct {
 	ID        uint   `gorm:"primaryKey"`
 	AppId     uint   `gorm:"index" validate:"required"`
-	App       App    `gorm:"constraint:OnDelete:CASCADE`
+	App       App    `gorm:"constraint:OnDelete:CASCADE"`
 	NostrId   string `gorm:"uniqueIndex" validate:"required"`
 	ReplyId   string
 	Content   string
@@ -54,7 +54,7 @@ type NostrEvent struct {
 type Payment struct {
 	ID             uint `gorm:"primaryKey"`
 	AppId          uint `gorm:"index" validate:"required"`
-	App            App  `gorm:"constraint:OnDelete:CASCADE`
+	App            App  `gorm:"constraint:OnDelete:CASCADE"`
 	NostrEventId   uint `gorm:"index" validate:"required"`
 	NostrEvent     NostrEvent
 	Amount         uint
