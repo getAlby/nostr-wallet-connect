@@ -104,7 +104,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.COOKIE_SECRET))))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
 	assetSubdir, err := fs.Sub(embeddedAssets, "public")
