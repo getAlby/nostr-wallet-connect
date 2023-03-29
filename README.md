@@ -11,5 +11,6 @@ For self-hosting with your own node, set the following parameters:
 - `RELAY`: eg. `wss://relay.damus.io`
 - `LN_BACKEND_TYPE`: should be set to `LND`
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009`
-- `LND_CERT_FILE"`: the location where LND's `tls.cert` file can be found
-- `LND_MACAROON_FILE"`:  the location where LND's `admin.macaroon` file can be found
+- `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found
+- `LND_MACAROON_FILE`:  the location where LND's `admin.macaroon` file can be found
+- `COOKIE_SECRET`: a secret word
