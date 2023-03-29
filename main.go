@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -40,13 +41,14 @@ func main() {
 	}
 
 	var db *gorm.DB
-	if cfg.DatabaseBackendType == "POSTGRESS" {
+	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
 		db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("Failed to open DB %v", err)
 		}
+
 	} else {
-		db, err = gorm.Open(sqlite.Open("wc.db"), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
 		if err != nil {
 			log.Fatalf("Failed to open DB %v", err)
 		}
