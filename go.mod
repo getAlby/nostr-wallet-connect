@@ -117,6 +117,9 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
+	github.com/tidwall/gjson v1.14.2 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -181,6 +184,7 @@ require (
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
+	github.com/tidwall/sjson v1.2.5
 	github.com/valyala/fastjson v1.6.3 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
 	gorm.io/driver/postgres v1.4.4

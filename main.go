@@ -19,6 +19,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var cfg Config
+
 func main() {
 
 	// Load config from environment variables / .env file
@@ -82,6 +84,12 @@ func main() {
 		}
 		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
+
+	case LNBitsBackendType:
+		var lnbitsclient *LNClient
+		svc.Logger.Infof("Connected to LNBits")
+		svc.lnClient = &LNBitsWrapper{cfg.LNBitsAdminKey, cfg.LNBitsHost, lnbitsclient}
+
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(&svc)
 		if err != nil {
