@@ -33,30 +33,32 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 			svc.Logger.Info("Received EOS")
 			svc.ReceivedEOS = true
 		case event := <-sub.Events:
-			resp, err := svc.HandleEvent(ctx, event)
-			if err != nil {
-				svc.Logger.Error(err)
-				continue
-			}
-			if resp != nil {
-				nostrEvent := NostrEvent{}
-				result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
-				if result.Error != nil {
-					svc.Logger.Error(result.Error)
-					continue
+			go func() {
+				resp, err := svc.HandleEvent(ctx, event)
+				if err != nil {
+					svc.Logger.Error(err)
+					return
 				}
-				status := sub.Relay.Publish(ctx, *resp)
-				nostrEvent.State = "replied" // TODO: check if publish was successful
-				nostrEvent.ReplyId = resp.ID
-				svc.db.Save(&nostrEvent)
-				svc.Logger.WithFields(logrus.Fields{
-					"nostrEventId": nostrEvent.ID,
-					"eventId":      event.ID,
-					"status":       status,
-					"replyEventId": resp.ID,
-					"appId":        nostrEvent.AppId,
-				}).Info("Published reply")
-			}
+				if resp != nil {
+					nostrEvent := NostrEvent{}
+					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
+					if result.Error != nil {
+						svc.Logger.Error(result.Error)
+						return
+					}
+					status := sub.Relay.Publish(ctx, *resp)
+					nostrEvent.State = "replied" // TODO: check if publish was successful
+					nostrEvent.ReplyId = resp.ID
+					svc.db.Save(&nostrEvent)
+					svc.Logger.WithFields(logrus.Fields{
+						"nostrEventId": nostrEvent.ID,
+						"eventId":      event.ID,
+						"status":       status,
+						"replyEventId": resp.ID,
+						"appId":        nostrEvent.AppId,
+					}).Info("Published reply")
+				}
+			}()
 		}
 	}
 }
