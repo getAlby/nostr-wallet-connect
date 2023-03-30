@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -16,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -38,10 +40,20 @@ func main() {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Failed to open DB %v", err)
+	var db *gorm.DB
+	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
+		db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to open DB %v", err)
+		}
+
+	} else {
+		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to open DB %v", err)
+		}
 	}
+
 	// Migrate the schema
 	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
 	if err != nil {
