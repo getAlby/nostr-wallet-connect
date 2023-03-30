@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.20-bullseye as builder
 
 # Move to working directory /build
 WORKDIR /build
@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN go build -o main
+RUN CGO_ENABLED=1 go build -o main
 
 # Start a new, final image to reduce size.
 FROM alpine as final
