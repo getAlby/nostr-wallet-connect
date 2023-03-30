@@ -9,6 +9,7 @@ import (
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/lndhub.go/lnd"
+	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lightningnetwork/lnd/lnrpc"
@@ -17,7 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -96,9 +96,16 @@ func main() {
 		svc.lnClient = &LNDWrapper{lndClient}
 
 	case LNBitsBackendType:
-		var lnbitsclient *LNClient
+		lnbitsClient, err := NewLNBitslient()
+		if err != nil {
+			svc.Logger.Fatal(err)
+		}
+		var options = LNBitsOptions{
+			AdminKey: cfg.LNBitsAdminKey,
+			Host:     cfg.LNBitsHost,
+		}
 		svc.Logger.Infof("Connected to LNBits")
-		svc.lnClient = &LNBitsWrapper{cfg.LNBitsAdminKey, cfg.LNBitsHost, lnbitsclient}
+		svc.lnClient = &LNBitsWrapper{lnbitsClient, options}
 
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(&svc)
