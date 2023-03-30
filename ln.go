@@ -85,8 +85,6 @@ func (lnbits *LNBitsWrapper) SendPaymentSync(ctx context.Context, senderPubkey, 
 		fmt.Print(err.Error())
 		return
 	}
-
-	fmt.Print("PAYMENT_HASH" + jsonMap["payment_hash"].(string))
 	return jsonMap["payment_hash"].(string), nil
 
 }
