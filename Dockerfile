@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.20-bullseye as builder
 
 # Move to working directory /build
 WORKDIR /build
