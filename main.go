@@ -21,8 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var cfg Config
-
 func main() {
 
 	// Load config from environment variables / .env file
