@@ -19,7 +19,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
@@ -354,11 +353,6 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		svc.Logger.WithError(err).Error("Failed to decode API response")
 		return err
 	}
-	_, pubkey, err := nip19.Decode(me.NPub)
-	if err != nil {
-		svc.Logger.WithError(err).Error("Failed to decode npub")
-		return err
-	}
 
 	user := User{}
 	svc.db.FirstOrInit(&user, User{AlbyIdentifier: me.Identifier})
@@ -366,12 +360,6 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	user.RefreshToken = tok.RefreshToken
 	user.Expiry = tok.Expiry // TODO; probably needs some calculation
 	svc.db.Save(&user)
-
-	app := App{}
-	svc.db.FirstOrInit(&app, App{UserId: user.ID, NostrPubkey: pubkey.(string)})
-	app.Name = me.LightningAddress
-	app.Description = "All apps with your private key"
-	svc.db.Save(&app)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	sess.Options = &sessions.Options{
