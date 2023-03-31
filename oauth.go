@@ -214,14 +214,14 @@ func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
 		MaxAge: -1,
 	}
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(http.StatusMovedPermanently, "/")
+	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
 	}
 
 	user := User{}
@@ -237,7 +237,7 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
 	}
 
 	user := User{}
@@ -260,7 +260,7 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
 	}
 	user := User{}
 	svc.db.First(&user, userID)
@@ -274,7 +274,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
@@ -303,7 +303,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
-		return c.Redirect(http.StatusMovedPermanently, "/apps")
+		return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 	}
 }
 
@@ -311,14 +311,14 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	svc.db.Delete(&app)
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
@@ -332,7 +332,7 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	sess.Save(c.Request(), c.Response())
 
 	url := svc.oauthConf.AuthCodeURL("")
-	return c.Redirect(http.StatusMovedPermanently, url)
+	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
@@ -380,5 +380,5 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 }
