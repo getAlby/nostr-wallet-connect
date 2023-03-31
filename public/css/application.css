@@ -1342,6 +1342,10 @@ select {
     display: block;
   }
 
+  .sm\:table-cell {
+    display: table-cell;
+  }
+
   .sm\:w-3\/5 {
     width: 60%;
   }
