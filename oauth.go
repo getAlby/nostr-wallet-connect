@@ -220,7 +220,7 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 
 	user := User{}
@@ -236,7 +236,7 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 
 	user := User{}
@@ -258,14 +258,16 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
+	appName := c.QueryParam("c") // c - for client
 	if userID == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/?c="+appName)
 	}
 	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User": user,
+		"Name": appName,
 	})
 }
 
@@ -273,7 +275,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
@@ -310,7 +312,7 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
