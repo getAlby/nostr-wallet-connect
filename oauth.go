@@ -19,7 +19,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
@@ -214,14 +213,14 @@ func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
 		MaxAge: -1,
 	}
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(http.StatusMovedPermanently, "/")
+	return c.Redirect(http.StatusTemporaryRedirect, "/")
 }
 
 func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 
 	user := User{}
@@ -237,7 +236,7 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 
 	user := User{}
@@ -259,14 +258,16 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
+	appName := c.QueryParam("c") // c - for client
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/?c="+appName)
 	}
 	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User": user,
+		"Name": appName,
 	})
 }
 
@@ -274,7 +275,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
@@ -303,7 +304,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
-		return c.Redirect(http.StatusMovedPermanently, "/apps")
+		return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 	}
 }
 
@@ -311,14 +312,14 @@ func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
 	if userID == nil {
-		return c.Redirect(http.StatusMovedPermanently, "/alby/auth")
+		return c.Redirect(http.StatusTemporaryRedirect, "/")
 	}
 	user := User{}
 	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	svc.db.Delete(&app)
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
@@ -332,7 +333,7 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	sess.Save(c.Request(), c.Response())
 
 	url := svc.oauthConf.AuthCodeURL("")
-	return c.Redirect(http.StatusMovedPermanently, url)
+	return c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
@@ -354,11 +355,6 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		svc.Logger.WithError(err).Error("Failed to decode API response")
 		return err
 	}
-	_, pubkey, err := nip19.Decode(me.NPub)
-	if err != nil {
-		svc.Logger.WithError(err).Error("Failed to decode npub")
-		return err
-	}
 
 	user := User{}
 	svc.db.FirstOrInit(&user, User{AlbyIdentifier: me.Identifier})
@@ -367,12 +363,6 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	user.Expiry = tok.Expiry // TODO; probably needs some calculation
 	svc.db.Save(&user)
 
-	app := App{}
-	svc.db.FirstOrInit(&app, App{UserId: user.ID, NostrPubkey: pubkey.(string)})
-	app.Name = me.LightningAddress
-	app.Description = "All apps with your private key"
-	svc.db.Save(&app)
-
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	sess.Options = &sessions.Options{
 		Path:   "/",
@@ -380,5 +370,5 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(http.StatusMovedPermanently, "/apps")
+	return c.Redirect(http.StatusTemporaryRedirect, "/apps")
 }

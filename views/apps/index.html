@@ -7,7 +7,7 @@
   <a class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
     href="/apps/new">
     <i class="fas fa-plus mr-3" aria-hidden="true"></i>
-    Add a new session
+    New session
   </a>
 </div>
 
@@ -18,7 +18,7 @@
   <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
     <tr>
       <th scope="col" class="px-6 py-3 w-2/6">Name</th>
-      <th scope="col" class="px-6 py-3 w-3/6">Pubkey</th>
+      <th scope="col" class="px-6 py-3 w-3/6 hidden sm:table-cell">Pubkey</th>
       <th scope="col" class="px-6 py-3 w-1/6"></th>
     </tr>
   </thead>
@@ -28,7 +28,7 @@
       <td class="px-6 py-4">
         <a href="/apps/{{.ID}}" class="underline">{{.Name}}</a>
       </td>
-      <td class="px-6 py-4 text-ellipsis overflow-hidden">
+      <td class="px-6 py-4 text-ellipsis overflow-hidden hidden sm:table-cell">
         <a href="/apps/{{.ID}}">{{.NostrPubkey}}</a>
       </td>
       <td class="px-6 py-4 ">
