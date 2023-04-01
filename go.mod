@@ -11,7 +11,7 @@ require (
 	github.com/nbd-wtf/ln-decodepay v1.11.1
 	golang.org/x/oauth2 v0.4.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
-	gorm.io/gorm v1.24.5
+	gorm.io/gorm v1.24.0
 )
 
 require (
@@ -182,7 +182,7 @@ require (
 	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/getAlby/lndhub.go v0.0.0-20230304124642-bdd94315270f
-	github.com/glebarez/sqlite v1.7.0
+	github.com/glebarez/sqlite v1.5.0
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
