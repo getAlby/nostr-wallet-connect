@@ -11,7 +11,7 @@ require (
 	github.com/nbd-wtf/ln-decodepay v1.11.1
 	golang.org/x/oauth2 v0.4.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
-	gorm.io/gorm v1.24.5
+	gorm.io/gorm v1.24.0
 )
 
 require (
@@ -190,7 +190,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lightningnetwork/lnd v0.15.5-beta.rc2
 	github.com/sirupsen/logrus v1.9.0
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/tidwall/sjson v1.2.5
 	github.com/valyala/fastjson v1.6.3 // indirect
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136 // indirect
