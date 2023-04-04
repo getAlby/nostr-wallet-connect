@@ -206,10 +206,8 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	if appName != "" {
-		sess.Values["app_name"] = appName
-		sess.Save(c.Request(), c.Response())
-	}
+	sess.Values["app_name"] = appName
+	sess.Save(c.Request(), c.Response())
 	userID := sess.Values["user_id"]
 	if userID != nil {
 		if appName != "" {
