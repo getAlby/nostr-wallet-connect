@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"strings"
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -93,6 +94,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
+	templates["apps/create_mobile.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create_mobile.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -289,15 +291,15 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 		//check user agent
 		//return page based on user agent
 		if checkMobile(c.Request().UserAgent()) {
-			return c.Render(http.StatusOK, "apps/mobile_create.html", map[string]interface{}{
-				"PairingUri":    connectionString,
+			return c.Render(http.StatusOK, "apps/create_mobile.html", map[string]interface{}{
+				"PairingUri":    template.URL(connectionString),
 				"PairingSecret": sk,
 				"Pubkey":        pk,
 				"Name":          name,
 			})
 		}
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-			"PairingUri":    connectionString,
+			"PairingUri":    template.URL(connectionString),
 			"PairingSecret": sk,
 			"Pubkey":        pk,
 			"Name":          name,
@@ -312,9 +314,8 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 }
 
 func checkMobile(userAgent string) bool {
-	fmt.Println(userAgent)
-	//todo
-	return false
+	//heuristic, will not catch absolutely everything
+	return strings.Contains(userAgent, "Android") || strings.Contains(userAgent, "iPhone") || strings.Contains(userAgent, "iPad")
 }
 
 func (svc *AlbyOAuthService) CreateApp(name string, userId uint) (sk, pk, connectionString string, err error) {
@@ -358,7 +359,7 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-		"PairingUri":    connectionString,
+		"PairingUri":    template.URL(connectionString),
 		"PairingSecret": sk,
 		"Pubkey":        pk,
 		"Name":          name,
