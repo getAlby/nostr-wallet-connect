@@ -429,5 +429,9 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
+	appName := sess.Values["app_name"].(string)
+	if appName != "" {
+		return c.Redirect(302, fmt.Sprintf("/apps/new?c=%s", appName))
+	}
 	return c.Redirect(302, "/apps")
 }
