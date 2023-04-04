@@ -206,8 +206,19 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["app_name"] = appName
-	sess.Save(c.Request(), c.Response())
+	if appName != "" {
+		sess.Values["app_name"] = appName
+		sess.Save(c.Request(), c.Response())
+	}
+	userID := sess.Values["user_id"]
+	if userID != nil {
+		if appName == "" {
+			//auto-create app
+			return c.Redirect(302, fmt.Sprintf("/apps?c=%s", appName))
+		}
+		//else, go to dashboard
+		return c.Redirect(302, "/apps")
+	}
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
 
@@ -285,14 +296,8 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	svc.db.Preload("Apps").First(&user, userID)
 
 	name := c.FormValue("name")
-	var pairingPublicKey string
-	var pairingSecretKey string
-	if c.FormValue("pubkey") == "" {
-		pairingSecretKey = nostr.GeneratePrivateKey()
-		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
-	} else {
-		pairingPublicKey = c.FormValue("pubkey")
-	}
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, _ := nostr.GetPublicKey(pairingSecretKey)
 
 	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
