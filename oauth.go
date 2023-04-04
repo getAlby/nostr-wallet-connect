@@ -212,9 +212,9 @@ func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
 	}
 	userID := sess.Values["user_id"]
 	if userID != nil {
-		if appName == "" {
+		if appName != "" {
 			//auto-create app
-			return c.Redirect(302, fmt.Sprintf("/apps?c=%s", appName))
+			return c.Redirect(302, fmt.Sprintf("/apps/new?c=%s", appName))
 		}
 		//else, go to dashboard
 		return c.Redirect(302, "/apps")
@@ -273,17 +273,75 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
-	appName := c.QueryParam("c") // c - for client
+	name := c.QueryParam("c") // c - for client
 	if userID == nil {
-		return c.Redirect(302, "/?c="+appName)
+		return c.Redirect(302, "/?c="+name)
+	}
+
+	if name != "" {
+		//auto-create app
+		sk, pk, connectionString, err := svc.CreateApp(name, userID.(uint))
+		if err != nil {
+			svc.Logger.WithFields(logrus.Fields{
+				"pairingPublicKey": pk,
+				"name":             name,
+			}).Errorf("Failed to save app: %v", err)
+			return c.Redirect(302, "/apps")
+		}
+		//check user agent
+		//return page based on user agent
+		if checkMobile(c.Request().UserAgent()) {
+			return c.Render(http.StatusOK, "apps/mobile_create.html", map[string]interface{}{
+				"PairingUri":    connectionString,
+				"PairingSecret": sk,
+				"Pubkey":        pk,
+				"Name":          name,
+			})
+		}
+		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+			"PairingUri":    connectionString,
+			"PairingSecret": sk,
+			"Pubkey":        pk,
+			"Name":          name,
+		})
 	}
 	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User": user,
-		"Name": appName,
 	})
+}
+
+func checkMobile(userAgent string) bool {
+	fmt.Println(userAgent)
+	//todo
+	return false
+}
+
+func (svc *AlbyOAuthService) CreateApp(name string, userId uint) (sk, pk, connectionString string, err error) {
+	user := User{}
+	err = svc.db.Preload("Apps").First(&user, userId).Error
+	if err != nil {
+		return
+	}
+
+	sk = nostr.GeneratePrivateKey()
+	pk, err = nostr.GetPublicKey(sk)
+	if err != nil {
+		return
+	}
+	if name == "" {
+		err = fmt.Errorf("Empty name is not allowed.")
+		return
+	}
+
+	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pk})
+	if err != nil {
+		return
+	}
+	connectionString = fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, sk)
+	return
 }
 
 func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
@@ -292,29 +350,21 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(302, "/")
 	}
-	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
-
 	name := c.FormValue("name")
-	pairingSecretKey := nostr.GeneratePrivateKey()
-	pairingPublicKey, _ := nostr.GetPublicKey(pairingSecretKey)
-
-	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
-	if err == nil {
-		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
-		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-			"PairingUri":    pairingUri,
-			"PairingSecret": pairingSecretKey,
-			"Pubkey":        pairingPublicKey,
-			"Name":          name,
-		})
-	} else {
+	sk, pk, connectionString, err := svc.CreateApp(name, userID.(uint))
+	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
-			"pairingPublicKey": pairingPublicKey,
+			"pairingPublicKey": pk,
 			"name":             name,
 		}).Errorf("Failed to save app: %v", err)
 		return c.Redirect(302, "/apps")
 	}
+	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+		"PairingUri":    connectionString,
+		"PairingSecret": sk,
+		"Pubkey":        pk,
+		"Name":          name,
+	})
 }
 
 func (svc *AlbyOAuthService) AppsDeleteHandler(c echo.Context) error {
