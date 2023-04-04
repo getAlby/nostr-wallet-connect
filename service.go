@@ -16,7 +16,7 @@ type Service struct {
 	db          *gorm.DB
 	lnClient    LNClient
 	ReceivedEOS bool
-	Logger      logrus.Logger
+	Logger      *logrus.Logger
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {

@@ -66,14 +66,16 @@ func main() {
 		db:  db,
 	}
 
-	tracer.Start(tracer.WithService("nostr-wallet-connect"))
-	defer tracer.Stop()
+	if os.Getenv("DATADOG_AGENT_URL") != "" {
+		tracer.Start(tracer.WithService("nostr-wallet-connect"))
+		defer tracer.Stop()
+	}
 
 	echologrus.Logger = log.New()
 	echologrus.Logger.SetFormatter(&log.JSONFormatter{})
 	echologrus.Logger.SetOutput(os.Stdout)
 	echologrus.Logger.SetLevel(log.InfoLevel)
-	svc.Logger = *echologrus.Logger
+	svc.Logger = echologrus.Logger
 
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)

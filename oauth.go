@@ -84,7 +84,7 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 		cfg:       svc.cfg,
 		oauthConf: conf,
 		db:        svc.db,
-		Logger:    &svc.Logger,
+		Logger:    svc.Logger,
 	}
 
 	e := echo.New()
@@ -204,6 +204,10 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 }
 
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
+	appName := c.QueryParam("c") // c - for client
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["app_name"] = appName
+	sess.Save(c.Request(), c.Response())
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
 
