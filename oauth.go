@@ -94,7 +94,6 @@ func NewAlbyOauthService(svc *Service) (result *AlbyOAuthService, err error) {
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
-	templates["apps/create_mobile.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create_mobile.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -277,39 +276,13 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	if userID == nil {
 		return c.Redirect(302, "/?c="+name)
 	}
-
-	if name != "" {
-		//auto-create app
-		sk, pk, connectionString, err := svc.CreateApp(name, userID.(uint))
-		if err != nil {
-			svc.Logger.WithFields(logrus.Fields{
-				"pairingPublicKey": pk,
-				"name":             name,
-			}).Errorf("Failed to save app: %v", err)
-			return c.Redirect(302, "/apps")
-		}
-		//check user agent
-		//return page based on user agent
-		if checkMobile(c.Request().UserAgent()) {
-			return c.Render(http.StatusOK, "apps/create_mobile.html", map[string]interface{}{
-				"PairingUri":    template.URL(connectionString),
-				"PairingSecret": sk,
-				"Pubkey":        pk,
-				"Name":          name,
-			})
-		}
-		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-			"PairingUri":    template.URL(connectionString),
-			"PairingSecret": sk,
-			"Pubkey":        pk,
-			"Name":          name,
-		})
-	}
 	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User": user,
+		"User":     user,
+		"Name":     name,
+		"isMobile": checkMobile(c.Request().UserAgent()),
 	})
 }
 
@@ -358,6 +331,13 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 		}).Errorf("Failed to save app: %v", err)
 		return c.Redirect(302, "/apps")
 	}
+
+	//if the user is on mobile, redirect them back to their app with the nostrwalletconnect:// deep link
+	if checkMobile(c.Request().UserAgent()) {
+		return c.Redirect(302, connectionString)
+	}
+
+	//else, show the page with the QR code
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"PairingUri":    template.URL(connectionString),
 		"PairingSecret": sk,
@@ -430,6 +410,8 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	sess.Save(c.Request(), c.Response())
 	appName := sess.Values["app_name"].(string)
 	if appName != "" {
+		//clear session before redirecting
+		delete(sess.Values, "app_name")
 		return c.Redirect(302, fmt.Sprintf("/apps/new?c=%s", appName))
 	}
 	return c.Redirect(302, "/apps")
