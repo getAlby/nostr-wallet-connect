@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -68,6 +69,7 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 
 	e.GET("/alby/auth", albySvc.AuthHandler)
 	e.GET("/alby/callback", albySvc.CallbackHandler)
+	e.GET("/", albySvc.IndexHandler)
 
 	e.GET("/logout", albySvc.LogoutHandler)
 	return albySvc, err
@@ -152,6 +154,14 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		}).Errorf("Payment failed %v", err)
 		return "", errors.New("Failed")
 	}
+}
+
+func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
+	appName := c.QueryParam("c") // c - for client
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["app_name"] = appName
+	sess.Save(c.Request(), c.Response())
+	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {

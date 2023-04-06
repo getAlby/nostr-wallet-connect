@@ -39,7 +39,6 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	assetSubdir, _ := fs.Sub(embeddedAssets, "public")
 	assetHandler := http.FileServer(http.FS(assetSubdir))
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
-	e.GET("/", svc.IndexHandler)
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
 	e.GET("/apps/:id", svc.AppsShowHandler)
@@ -47,17 +46,8 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 }
 
-func (svc *Service) IndexHandler(c echo.Context) error {
-	appName := c.QueryParam("c") // c - for client
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["app_name"] = appName
-	sess.Save(c.Request(), c.Response())
-	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
-}
-
 func (svc *Service) AppsListHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	userID := sess.Values["user_id"]
+	userID := svc.GetUserID(c)
 	if userID == nil {
 		return c.Redirect(302, "/")
 	}
@@ -72,8 +62,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	userID := sess.Values["user_id"]
+	userID := svc.GetUserID(c)
 	if userID == nil {
 		return c.Redirect(302, "/")
 	}
@@ -95,8 +84,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	userID := sess.Values["user_id"]
+	userID := svc.GetUserID(c)
 	appName := c.QueryParam("c") // c - for client
 	if userID == nil {
 		return c.Redirect(302, "/?c="+appName)
@@ -111,8 +99,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	userID := sess.Values["user_id"]
+	userID := svc.GetUserID(c)
 	if userID == nil {
 		return c.Redirect(302, "/")
 	}
@@ -148,8 +135,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	userID := sess.Values["user_id"]
+	userID := svc.GetUserID(c)
 	if userID == nil {
 		return c.Redirect(302, "/")
 	}

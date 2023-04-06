@@ -99,6 +99,13 @@ func main() {
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
+		//add default user to db
+		user := &User{}
+		svc.db.FirstOrInit(user, User{AlbyIdentifier: "dummy"})
+		svc.db.Save(user)
+
+		//register index handler
+		e.GET("/", svc.AppsListHandler)
 		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:

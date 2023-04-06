@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -17,6 +19,16 @@ type Service struct {
 	lnClient    LNClient
 	ReceivedEOS bool
 	Logger      *logrus.Logger
+}
+
+func (svc *Service) GetUserID(c echo.Context) interface{} {
+	if svc.cfg.LNBackendType == LNDBackendType {
+		//if we self-host, there is always only one user
+		return 1
+	}
+	//else we check the session
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	return sess.Values["user_id"]
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {
