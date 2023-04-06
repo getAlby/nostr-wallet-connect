@@ -20,7 +20,7 @@ type Config struct {
 	OAuthRedirectUrl string `envconfig:"OAUTH_REDIRECT_URL"`
 	OAuthAuthUrl     string `envconfig:"OAUTH_AUTH_URL" default:"https://getalby.com/oauth"`
 	OAuthTokenUrl    string `envconfig:"OAUTH_TOKEN_URL" default:"https://api.getalby.com/oauth/token"`
-	OAuthServerPort  string `envconfig:"OAUTH_SERVER_PORT" default:"8080"`
+	Port             string `envconfig:"OAUTH_SERVER_PORT" default:"8080"`
 	DatabaseUri      string `envconfig:"DATABASE_URI" default:"nostr-wallet-connect.db"`
 	IdentityPubkey   string
 }
