@@ -11,12 +11,10 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
-	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
@@ -87,26 +85,10 @@ func main() {
 	var wg sync.WaitGroup
 	switch cfg.LNBackendType {
 	case LNDBackendType:
-		lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
-			Address:      cfg.LNDAddress,
-			CertFile:     cfg.LNDCertFile,
-			MacaroonFile: cfg.LNDMacaroonFile,
-		})
+		lndClient, err := svc.InitSelfHostedService(ctx, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		//add default user to db
-		user := &User{}
-		svc.db.FirstOrInit(user, User{AlbyIdentifier: "dummy"})
-		svc.db.Save(user)
-
-		//register index handler
-		e.GET("/", svc.AppsListHandler)
-		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(svc, e)

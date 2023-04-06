@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -193,4 +195,34 @@ func (svc *Service) createResponse(kind int, initialEvent *nostr.Event, content 
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (svc *Service) InitSelfHostedService(ctx context.Context, e *echo.Echo) (result *lnd.LNDWrapper, err error) {
+	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
+		Address:      svc.cfg.LNDAddress,
+		CertFile:     svc.cfg.LNDCertFile,
+		MacaroonFile: svc.cfg.LNDMacaroonFile,
+	})
+	if err != nil {
+		return nil, err
+	}
+	info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	if err != nil {
+		return nil, err
+	}
+	//add default user to db
+	user := &User{}
+	err = svc.db.FirstOrInit(user, User{AlbyIdentifier: "dummy"}).Error
+	if err != nil {
+		return nil, err
+	}
+	err = svc.db.Save(user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	//register index handler
+	e.GET("/", svc.AppsListHandler)
+	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
+	return lndClient, nil
 }
