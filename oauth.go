@@ -272,16 +272,16 @@ func (svc *AlbyOAuthService) AppsShowHandler(c echo.Context) error {
 func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
-	name := c.QueryParam("c") // c - for client
+	appName := c.QueryParam("c") // c - for client
 	if userID == nil {
-		return c.Redirect(302, "/?c="+name)
+		return c.Redirect(302, "/?c="+appName)
 	}
 	user := User{}
 	svc.db.First(&user, userID)
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User":     user,
-		"Name":     name,
+		"Name":     appName,
 		"isMobile": checkMobile(c.Request().UserAgent()),
 	})
 }
