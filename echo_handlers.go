@@ -44,6 +44,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/apps/:id", svc.AppsShowHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
+	e.GET("/logout", svc.LogoutHandler)
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -145,4 +146,13 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	svc.db.Delete(&app)
 	return c.Redirect(302, "/apps")
+}
+
+func (svc *Service) LogoutHandler(c echo.Context) error {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Options = &sessions.Options{
+		MaxAge: -1,
+	}
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(302, "/")
 }

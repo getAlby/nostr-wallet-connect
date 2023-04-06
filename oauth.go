@@ -71,7 +71,6 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 	e.GET("/alby/callback", albySvc.CallbackHandler)
 	e.GET("/", albySvc.IndexHandler)
 
-	e.GET("/logout", albySvc.LogoutHandler)
 	return albySvc, err
 }
 
@@ -213,13 +212,4 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/apps")
-}
-
-func (svc *AlbyOAuthService) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Options = &sessions.Options{
-		MaxAge: -1,
-	}
-	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/")
 }
