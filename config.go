@@ -6,7 +6,7 @@ const (
 )
 
 type Config struct {
-	NostrSecretKey   string `envconfig:"NOSTR_PRIVKEY" required:"true"`
+	NostrSecretKey   string `envconfig:"NOSTR_PRIVKEY"`
 	CookieSecret     string `envconfig:"COOKIE_SECRET" required:"true"`
 	ClientPubkey     string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay            string `envconfig:"RELAY" default:"wss://relay.regtest.getalby.com/v1"`

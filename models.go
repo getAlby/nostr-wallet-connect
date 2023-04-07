@@ -2,6 +2,8 @@ package main
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -71,4 +73,8 @@ type PayRequest struct {
 type PayResponse struct {
 	Preimage    string `json:"payment_preimage"`
 	PaymentHash string `json:"payment_hash"`
+}
+type Identity struct {
+	gorm.Model
+	Privkey string
 }

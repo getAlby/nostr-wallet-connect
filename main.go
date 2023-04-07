@@ -32,15 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
-	cfg.IdentityPubkey = identityPubkey
-	npub, err := nip19.EncodePublicKey(identityPubkey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
 
 	var db *gorm.DB
 	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
@@ -57,9 +48,43 @@ func main() {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
+	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
 	if err != nil {
 		log.Fatalf("Failed migrate DB %v", err)
+	}
+
+	privKey := cfg.NostrSecretKey
+	if privKey == "" {
+		if cfg.LNBackendType == AlbyBackendType {
+			//not allowed
+			log.Fatal("Nostr private key is required with this backend type.")
+		}
+		//first look up if we already have the private key in the database
+		//else, generate and store private key
+		identity := &Identity{}
+		err = db.FirstOrInit(identity).Error
+		if err != nil {
+			log.WithError(err).Fatal("Error retrieving private key from database")
+		}
+		if identity.Privkey == "" {
+			log.Info("No private key found in database, generating & saving.")
+			identity.Privkey = nostr.GeneratePrivateKey()
+			err = db.Save(identity).Error
+			if err != nil {
+				log.WithError(err).Fatal("Error saving private key to database")
+			}
+		}
+		privKey = identity.Privkey
+	}
+
+	identityPubkey, err := nostr.GetPublicKey(privKey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+	}
+	cfg.IdentityPubkey = identityPubkey
+	npub, err := nip19.EncodePublicKey(identityPubkey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
 	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
