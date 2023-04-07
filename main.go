@@ -53,8 +53,7 @@ func main() {
 		log.Fatalf("Failed migrate DB %v", err)
 	}
 
-	privKey := cfg.NostrSecretKey
-	if privKey == "" {
+	if cfg.NostrSecretKey == "" {
 		if cfg.LNBackendType == AlbyBackendType {
 			//not allowed
 			log.Fatal("Nostr private key is required with this backend type.")
@@ -74,10 +73,10 @@ func main() {
 				log.WithError(err).Fatal("Error saving private key to database")
 			}
 		}
-		privKey = identity.Privkey
+		cfg.NostrSecretKey = identity.Privkey
 	}
 
-	identityPubkey, err := nostr.GetPublicKey(privKey)
+	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
