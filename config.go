@@ -9,7 +9,7 @@ type Config struct {
 	NostrSecretKey   string `envconfig:"NOSTR_PRIVKEY"`
 	CookieSecret     string `envconfig:"COOKIE_SECRET" required:"true"`
 	ClientPubkey     string `envconfig:"CLIENT_NOSTR_PUBKEY"`
-	Relay            string `envconfig:"RELAY" default:"wss://relay.regtest.getalby.com/v1"`
+	Relay            string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	LNBackendType    string `envconfig:"LN_BACKEND_TYPE" default:"ALBY"`
 	LNDAddress       string `envconfig:"LND_ADDRESS"`
 	LNDCertFile      string `envconfig:"LND_CERT_FILE"`
