@@ -205,18 +205,18 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 }
 
 func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
-	appName := c.QueryParam("c") // c - for client
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["app_name"] = appName
-	sess.Save(c.Request(), c.Response())
+	appName := sess.Values["app_name"]
 	userID := sess.Values["user_id"]
 	if userID != nil {
-		if appName != "" {
-			//auto-create app
+		if appName != "" && appName != nil {
+			delete(sess.Values, "app_name")
+			sess.Save(c.Request(), c.Response())
 			return c.Redirect(302, fmt.Sprintf("/apps/new?c=%s", appName))
+		} else {
+			//else, go to dashboard
+			return c.Redirect(302, "/apps")
 		}
-		//else, go to dashboard
-		return c.Redirect(302, "/apps")
 	}
 	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
@@ -238,8 +238,9 @@ func (svc *AlbyOAuthService) AppsListHandler(c echo.Context) error {
 	}
 
 	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
-	apps := user.Apps
+	apps := []App{}
+	svc.db.First(&user, userID)
+	svc.db.Where("apps.user_id = ?", userID).Order("apps.id desc").Find(&apps)
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"Apps": apps,
 		"User": user,
@@ -274,6 +275,8 @@ func (svc *AlbyOAuthService) AppsNewHandler(c echo.Context) error {
 	userID := sess.Values["user_id"]
 	appName := c.QueryParam("c") // c - for client
 	if userID == nil {
+		sess.Values["app_name"] = appName
+		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, "/?c="+appName)
 	}
 	user := User{}
@@ -332,12 +335,6 @@ func (svc *AlbyOAuthService) AppsCreateHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 
-	//if the user is on mobile, redirect them back to their app with the nostrwalletconnect:// deep link
-	if checkMobile(c.Request().UserAgent()) {
-		return c.Redirect(302, connectionString)
-	}
-
-	//else, show the page with the QR code
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"PairingUri":    template.URL(connectionString),
 		"PairingSecret": sk,
@@ -408,11 +405,5 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
-	appName := sess.Values["app_name"].(string)
-	if appName != "" {
-		//clear session before redirecting
-		delete(sess.Values, "app_name")
-		return c.Redirect(302, fmt.Sprintf("/apps/new?c=%s", appName))
-	}
-	return c.Redirect(302, "/apps")
+	return c.Redirect(302, "/")
 }
