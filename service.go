@@ -21,14 +21,22 @@ type Service struct {
 	Logger      *logrus.Logger
 }
 
-func (svc *Service) GetUserID(c echo.Context) interface{} {
+func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	userID := sess.Values["user_id"]
 	if svc.cfg.LNBackendType == LNDBackendType {
 		//if we self-host, there is always only one user
-		return 1
+		userID = 1
 	}
-	//else we check the session
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	return sess.Values["user_id"]
+	user = &User{}
+	err = svc.db.Preload("Apps").First(&user, userID).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return
 }
 
 func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscription) error {

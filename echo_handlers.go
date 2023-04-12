@@ -48,13 +48,14 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
-	userID := svc.GetUserID(c)
-	if userID == nil {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	if user == nil {
 		return c.Redirect(302, "/")
 	}
 
-	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
 	apps := user.Apps
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"Apps": apps,
@@ -63,13 +64,14 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
-	userID := svc.GetUserID(c)
-	if userID == nil {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	if user == nil {
 		return c.Redirect(302, "/")
 	}
 
-	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	lastEvent := NostrEvent{}
@@ -85,14 +87,14 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
-	userID := svc.GetUserID(c)
 	appName := c.QueryParam("c") // c - for client
-	if userID == nil {
-		return c.Redirect(302, "/?c="+appName)
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
 	}
-	user := User{}
-	svc.db.First(&user, userID)
-
+	if user == nil {
+		return c.Redirect(302, "/")
+	}
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User": user,
 		"Name": appName,
@@ -100,12 +102,13 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsCreateHandler(c echo.Context) error {
-	userID := svc.GetUserID(c)
-	if userID == nil {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	if user == nil {
 		return c.Redirect(302, "/")
 	}
-	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
 
 	name := c.FormValue("name")
 	var pairingPublicKey string
@@ -117,7 +120,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		pairingPublicKey = c.FormValue("pubkey")
 	}
 
-	err := svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
+	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
 		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
@@ -136,12 +139,13 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {
-	userID := svc.GetUserID(c)
-	if userID == nil {
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	if user == nil {
 		return c.Redirect(302, "/")
 	}
-	user := User{}
-	svc.db.Preload("Apps").First(&user, userID)
 	app := App{}
 	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
 	svc.db.Delete(&app)
