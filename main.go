@@ -2,16 +2,20 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"sync"
+	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -61,7 +65,7 @@ func main() {
 	}
 
 	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
-	svc := Service{
+	svc := &Service{
 		cfg: cfg,
 		db:  db,
 	}
@@ -77,6 +81,7 @@ func main() {
 	echologrus.Logger.SetLevel(log.InfoLevel)
 	svc.Logger = echologrus.Logger
 
+	e := echo.New()
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 	var wg sync.WaitGroup
@@ -94,21 +99,39 @@ func main() {
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
+		//add default user to db
+		user := &User{}
+		svc.db.FirstOrInit(user, User{AlbyIdentifier: "dummy"})
+		svc.db.Save(user)
+
+		//register index handler
+		e.GET("/", svc.AppsListHandler)
 		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
-		oauthService, err := NewAlbyOauthService(&svc)
+		oauthService, err := NewAlbyOauthService(svc, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		wg.Add(1)
-		go func() {
-			oauthService.Start(ctx)
-			svc.Logger.Info("OAuth server exited")
-			wg.Done()
-		}()
 		svc.lnClient = oauthService
 	}
+
+	//register shared routes
+	svc.RegisterSharedRoutes(e)
+	//start Echo server
+	wg.Add(1)
+	go func() {
+		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("shutting down the server")
+		}
+		//handle graceful shutdown
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		e.Shutdown(ctx)
+		svc.Logger.Info("Echo server exited")
+		wg.Done()
+	}()
 
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
