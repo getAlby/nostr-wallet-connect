@@ -83,7 +83,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, nil
 	}
 	app := App{}
-	err = svc.db.Preload("User").Find(&app, &App{
+	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: event.PubKey,
 	}).Error
 	if err != nil {
