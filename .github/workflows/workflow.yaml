@@ -13,10 +13,12 @@ jobs:
     - uses: actions/checkout@v2
       name: Check out code
     - name: Docker build
-      uses: mr-smithers-excellent/docker-build-push@v5
+      uses: mr-smithers-excellent/docker-build-push@v6
       id: build
       with:
         image: ${{ env.IMAGENAME }}
         registry: ${{ env.REGISTRY }}
+        multiPlatform: true
+        platform: linux/amd64,linux/arm64
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}

@@ -11,12 +11,10 @@ import (
 	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo/v4"
-	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
@@ -34,15 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
-	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
-	cfg.IdentityPubkey = identityPubkey
-	npub, err := nip19.EncodePublicKey(identityPubkey)
-	if err != nil {
-		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
-	}
 
 	var db *gorm.DB
 	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
@@ -59,9 +48,42 @@ func main() {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{})
+	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
 	if err != nil {
 		log.Fatalf("Failed migrate DB %v", err)
+	}
+
+	if cfg.NostrSecretKey == "" {
+		if cfg.LNBackendType == AlbyBackendType {
+			//not allowed
+			log.Fatal("Nostr private key is required with this backend type.")
+		}
+		//first look up if we already have the private key in the database
+		//else, generate and store private key
+		identity := &Identity{}
+		err = db.FirstOrInit(identity).Error
+		if err != nil {
+			log.WithError(err).Fatal("Error retrieving private key from database")
+		}
+		if identity.Privkey == "" {
+			log.Info("No private key found in database, generating & saving.")
+			identity.Privkey = nostr.GeneratePrivateKey()
+			err = db.Save(identity).Error
+			if err != nil {
+				log.WithError(err).Fatal("Error saving private key to database")
+			}
+		}
+		cfg.NostrSecretKey = identity.Privkey
+	}
+
+	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
+	}
+	cfg.IdentityPubkey = identityPubkey
+	npub, err := nip19.EncodePublicKey(identityPubkey)
+	if err != nil {
+		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
 	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
@@ -87,26 +109,10 @@ func main() {
 	var wg sync.WaitGroup
 	switch cfg.LNBackendType {
 	case LNDBackendType:
-		lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
-			Address:      cfg.LNDAddress,
-			CertFile:     cfg.LNDCertFile,
-			MacaroonFile: cfg.LNDMacaroonFile,
-		})
+		lndClient, err := svc.InitSelfHostedService(ctx, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		//add default user to db
-		user := &User{}
-		svc.db.FirstOrInit(user, User{AlbyIdentifier: "dummy"})
-		svc.db.Save(user)
-
-		//register index handler
-		e.GET("/", svc.AppsListHandler)
-		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 		svc.lnClient = &LNDWrapper{lndClient}
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(svc, e)
