@@ -61,14 +61,12 @@
 
 </div>
 
-<!-- loading the pairing link in an iframe does not break the site for users that do not understand the pairing link  -->
-<iframe id="connect-iframe" src="{{.PairingUri}}" style="visibility:hidden"></iframe>
-
 <script type="text/javascript" src="/public/js/qr-creator.js"></script>
 <script type="text/javascript">
 
   window.addEventListener("DOMContentLoaded", (event) => {
 
+    document.location = "{{.PairingUri}}";
     QrCreator.render({
       text: "{{.PairingUri}}",
       size: 384 // in pixels
