@@ -8,7 +8,7 @@
 <p class="text-sm mb-4">By clicking connect you give this application access to your wallet.</p>
 
 <form method="POST" action="/apps">
-  <input type="hidden" name="pubkey" value="{{.PubKey}}" id="pubkey" />
+  <input type="hidden" name="pubkey" value="{{.Pubkey}}" id="pubkey" />
 
   {{if eq .Name "" }}
     <div class="mb-4">
