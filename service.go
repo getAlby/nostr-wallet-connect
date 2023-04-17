@@ -30,13 +30,15 @@ func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 		//if we self-host, there is always only one user
 		userID = 1
 	}
-	user = &User{}
-	err = svc.db.Preload("Apps").First(&user, userID).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
+	if userID != nil {
+		user = &User{}
+		err = svc.db.Preload("Apps").First(&user, userID).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, nil
+			}
+			return nil, err
 		}
-		return nil, err
 	}
 	return
 }
