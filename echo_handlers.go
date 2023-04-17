@@ -21,6 +21,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates := make(map[string]*template.Template)
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
+	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
@@ -31,6 +32,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.Logger = echologrus.GetEchoLogger()
 	e.Use(echologrus.Middleware())
 
+	e.Use(middleware.Secure())
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
@@ -45,6 +47,26 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/", svc.IndexHandler)
+}
+
+func (svc *Service) IndexHandler(c echo.Context) error {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	returnTo := sess.Values["return_to"]
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	svc.Logger.Infof("fooo %s", returnTo)
+	if user != nil && returnTo != nil {
+		delete(sess.Values, "return_to")
+		sess.Save(c.Request(), c.Response())
+		return c.Redirect(302, fmt.Sprintf("%s", returnTo))
+	}
+	if user != nil {
+		return c.Redirect(302, "/apps")
+	}
+	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -88,16 +110,30 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
+	// appProfile := c.QueryParam("p") // p - for profile pubkey
+	pubkey := c.QueryParam("pubkey")
+	referrer := c.Request().Header.Get("Referrer")
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
 	}
 	if user == nil {
+		sess, _ := session.Get("alby_nostr_wallet_connect", c)
+		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
+		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, "/")
 	}
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User": user,
-		"Name": appName,
+	var template string
+	if pubkey != "" {
+		template = "apps/new_with_pubkey.html"
+	} else {
+		template = "apps/new.html"
+	}
+	return c.Render(http.StatusOK, template, map[string]interface{}{
+		"User":     user,
+		"Name":     appName,
+		"Pubkey":   pubkey,
+		"Referrer": referrer,
 	})
 }
 

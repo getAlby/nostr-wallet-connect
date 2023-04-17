@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -69,7 +68,6 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 
 	e.GET("/alby/auth", albySvc.AuthHandler)
 	e.GET("/alby/callback", albySvc.CallbackHandler)
-	e.GET("/", albySvc.IndexHandler)
 
 	return albySvc, err
 }
@@ -155,22 +153,11 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	}
 }
 
-func (svc *AlbyOAuthService) IndexHandler(c echo.Context) error {
-	appName := c.QueryParam("c") // c - for client
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Values["app_name"] = appName
-	sess.Save(c.Request(), c.Response())
-	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
-}
-
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	// clear current session
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	sess.Values["user_id"] = ""
 	delete(sess.Values, "user_id")
-	sess.Options = &sessions.Options{
-		MaxAge: -1,
-	}
 	sess.Save(c.Request(), c.Response())
 
 	url := svc.oauthConf.AuthCodeURL("")
@@ -211,5 +198,5 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
-	return c.Redirect(302, "/apps")
+	return c.Redirect(302, "/")
 }
