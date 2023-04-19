@@ -177,13 +177,13 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}).Info("Failed to send payment: %v", err)
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)
-		return svc.createResponse(NIP_47_ERROR_RESPONSE_KIND, event, err.Error(), ss)
+		return svc.createResponse(NIP_47_RESPONSE_KIND, event, err.Error(), ss)
 	}
 	payment.Preimage = preimage
 	nostrEvent.State = "executed"
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
-	return svc.createResponse(NIP_47_SUCCESS_RESPONSE_KIND, event, preimage, ss)
+	return svc.createResponse(NIP_47_RESPONSE_KIND, event, preimage, ss)
 }
 
 func (svc *Service) createResponse(kind int, initialEvent *nostr.Event, content string, ss []byte) (result *nostr.Event, err error) {
