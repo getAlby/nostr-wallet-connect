@@ -107,12 +107,22 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}).Warn("Event already processed")
 		return nil, nil
 	}
+	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
+	if err != nil {
+		return nil, err
+	}
 	app := App{}
 	err = svc.db.Preload("User").First(&app, &App{
 		NostrPubkey: event.PubKey,
 	}).Error
 	if err != nil {
-		return nil, err
+		resp, _ := svc.createResponse(event, Nip47Response{
+			Error: Nip47Error{
+				Code:    NIP_47_ERROR_UNAUTHORIZED,
+				Message: "The public key does not have a wallet connected.",
+			},
+		}, ss)
+		return resp, err
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
@@ -121,10 +131,6 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		"appId":     app.ID,
 	}).Info("App found for nostr event")
 
-	ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
-	if err != nil {
-		return nil, err
-	}
 	//todo: define and handle connect requests
 	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {

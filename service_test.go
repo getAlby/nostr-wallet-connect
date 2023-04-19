@@ -41,7 +41,9 @@ func TestHandleEvent(t *testing.T) {
 		Content: payload,
 	})
 	assert.Error(t, err)
-	//TODO: implement & check response
+	assert.NotNil(t, res)
+	//register app
+	//test old payload
 	//test new payload
 	//test malformed payload
 	//test wrong method
