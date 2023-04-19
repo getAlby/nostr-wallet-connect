@@ -199,7 +199,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 			"eventKind": event.Kind,
 			"appId":     app.ID,
 			"bolt11":    bolt11,
-		}).Info("Failed to send payment: %v", err)
+		}).Infof("Failed to send payment: %v", err)
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
