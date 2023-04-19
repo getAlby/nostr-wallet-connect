@@ -78,3 +78,23 @@ type Identity struct {
 	gorm.Model
 	Privkey string
 }
+
+type Nip47Request struct {
+	Method string
+	Params interface{}
+}
+
+type Nip47Response struct {
+	Error struct {
+		Code    string
+		Message string
+	} `json:"error,omitempty"`
+	Result interface{}
+}
+
+type Nip47PayParams struct {
+	Invoice string
+}
+type Nip47PayResponse struct {
+	Preimage string
+}

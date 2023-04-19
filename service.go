@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/getAlby/lndhub.go/lnd"
@@ -123,7 +124,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, err
 	}
 	//todo: define and handle connect requests
-	bolt11, err := nip04.Decrypt(event.Content, ss)
+	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
@@ -144,6 +145,14 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, insertNostrEventResult.Error
 	}
 
+	var bolt11 string
+	if strings.HasPrefix(payload, "ln") {
+		//legacy
+		bolt11 = payload
+	} else {
+		//decode json
+		//get bolt11 from json
+	}
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
