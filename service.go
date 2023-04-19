@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -150,8 +152,19 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		//legacy
 		bolt11 = payload
 	} else {
-		//decode json
-		//get bolt11 from json
+		payParams := &Nip47PayParams{}
+		nip47Request := &Nip47Request{
+			Params: payParams,
+		}
+		err = json.Unmarshal([]byte(payload), nip47Request)
+		if err != nil {
+			return nil, err
+		}
+		if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
+			//todo create nip 47 error response
+			return nil, fmt.Errorf("Method not supported")
+		}
+		bolt11 = payParams.Invoice
 	}
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
