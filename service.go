@@ -162,7 +162,10 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}
 		if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
 			//todo create nip 47 error response
-			return nil, fmt.Errorf("Method not supported")
+			return svc.createResponse(event, Nip47Response{Error: Nip47Error{
+				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
+				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
+			}}, ss)
 		}
 		bolt11 = payParams.Invoice
 	}
@@ -199,24 +202,37 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}).Info("Failed to send payment: %v", err)
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)
-		return svc.createResponse(NIP_47_RESPONSE_KIND, event, err.Error(), ss)
+		return svc.createResponse(event, Nip47Response{
+			Error: Nip47Error{
+				Code:    NIP_47_ERROR_INTERNAL,
+				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
+			},
+		}, ss)
 	}
 	payment.Preimage = preimage
 	nostrEvent.State = "executed"
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
-	return svc.createResponse(NIP_47_RESPONSE_KIND, event, preimage, ss)
+	return svc.createResponse(event, Nip47Response{
+		Result: Nip47PayResponse{
+			Preimage: preimage,
+		},
+	}, ss)
 }
 
-func (svc *Service) createResponse(kind int, initialEvent *nostr.Event, content string, ss []byte) (result *nostr.Event, err error) {
-	msg, err := nip04.Encrypt(content, ss)
+func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{}, ss []byte) (result *nostr.Event, err error) {
+	payloadBytes, err := json.Marshal(content)
+	if err != nil {
+		return nil, err
+	}
+	msg, err := nip04.Encrypt(string(payloadBytes), ss)
 	if err != nil {
 		return nil, err
 	}
 	resp := &nostr.Event{
 		PubKey:    svc.cfg.IdentityPubkey,
 		CreatedAt: time.Now(),
-		Kind:      kind,
+		Kind:      NIP_47_RESPONSE_KIND,
 		Tags:      nostr.Tags{[]string{"p", initialEvent.PubKey}, []string{"e", initialEvent.ID}},
 		Content:   msg,
 	}

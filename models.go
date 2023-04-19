@@ -7,10 +7,12 @@ import (
 )
 
 const (
-	NIP_47_INFO_EVENT_KIND    = 13194
-	NIP_47_REQUEST_KIND       = 23194
-	NIP_47_RESPONSE_KIND      = 23195
-	NIP_47_PAY_INVOICE_METHOD = "pay_invoice"
+	NIP_47_INFO_EVENT_KIND       = 13194
+	NIP_47_REQUEST_KIND          = 23194
+	NIP_47_RESPONSE_KIND         = 23195
+	NIP_47_PAY_INVOICE_METHOD    = "pay_invoice"
+	NIP_47_ERROR_INTERNAL        = "INTERNAL"
+	NIP_47_ERROR_NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
 )
 
 type AlbyMe struct {
@@ -86,11 +88,13 @@ type Nip47Request struct {
 }
 
 type Nip47Response struct {
-	Error struct {
-		Code    string
-		Message string
-	} `json:"error,omitempty"`
+	Error  Nip47Error `json:"error,omitempty"`
 	Result interface{}
+}
+
+type Nip47Error struct {
+	Code    string
+	Message string
 }
 
 type Nip47PayParams struct {
