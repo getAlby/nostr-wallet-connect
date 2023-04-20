@@ -285,3 +285,23 @@ func (svc *Service) InitSelfHostedService(ctx context.Context, e *echo.Echo) (re
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 	return lndClient, nil
 }
+
+func (svc *Service) PublishNip47Info(ctx context.Context) error {
+	relay, err := nostr.RelayConnect(ctx, svc.cfg.Relay)
+	if err != nil {
+		return err
+	}
+	ev := &nostr.Event{}
+	ev.Kind = NIP_47_INFO_EVENT_KIND
+	ev.Content = NIP_47_CAPABILITIES
+	ev.PubKey = svc.cfg.IdentityPubkey
+	err = ev.Sign(svc.cfg.NostrSecretKey)
+	if err != nil {
+		return err
+	}
+	status := relay.Publish(ctx, *ev)
+	if status != nostr.PublishStatusSucceeded {
+		return fmt.Errorf("Nostr publish not succesful: %s", status)
+	}
+	return nil
+}
