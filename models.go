@@ -84,23 +84,23 @@ type Identity struct {
 }
 
 type Nip47Request struct {
-	Method string
-	Params interface{}
+	Method string      `json:"method"`
+	Params interface{} `json:"params"`
 }
 
 type Nip47Response struct {
-	Error  Nip47Error `json:"error,omitempty"`
-	Result interface{}
+	Error  *Nip47Error `json:"error,omitempty"`
+	Result interface{} `json:"result,omitempty"`
 }
 
 type Nip47Error struct {
-	Code    string
-	Message string
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 type Nip47PayParams struct {
-	Invoice string
+	Invoice string `json:"invoice"`
 }
 type Nip47PayResponse struct {
-	Preimage string
+	Preimage string `json:"preimage"`
 }

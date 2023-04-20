@@ -117,7 +117,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	}).Error
 	if err != nil {
 		resp, _ := svc.createResponse(event, Nip47Response{
-			Error: Nip47Error{
+			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
 			},
@@ -168,7 +168,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}
 		if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
 			//todo create nip 47 error response
-			return svc.createResponse(event, Nip47Response{Error: Nip47Error{
+			return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 			}}, ss)
@@ -210,7 +210,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		nostrEvent.State = "error"
 		svc.db.Save(&nostrEvent)
 		return svc.createResponse(event, Nip47Response{
-			Error: Nip47Error{
+			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_INTERNAL,
 				Message: fmt.Sprintf("Something went wrong while paying invoice: %s", err.Error()),
 			},

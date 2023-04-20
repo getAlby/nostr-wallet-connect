@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -69,7 +70,12 @@ func TestHandleEvent(t *testing.T) {
 		Content: payload,
 	})
 	assert.Error(t, err)
-	//todo check payload
+	received := &Nip47Response{}
+	decrypted, err := nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_UNAUTHORIZED)
 	assert.NotNil(t, res)
 	//create user
 	user := &User{ID: 0, AlbyIdentifier: "dummy"}
@@ -86,7 +92,6 @@ func TestHandleEvent(t *testing.T) {
 		Content: payload,
 	})
 	assert.NoError(t, err)
-	//todo check payload
 	assert.NotNil(t, res)
 	//test new payload
 	newPayload, err := nip04.Encrypt(nip47PayJson, ss)
@@ -99,6 +104,14 @@ func TestHandleEvent(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47PayResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Result.(*Nip47PayResponse).Preimage, "123preimage")
 	malformedPayload, err := nip04.Encrypt(nip47PayJsonNoInvoice, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
