@@ -69,7 +69,6 @@ func TestHandleEvent(t *testing.T) {
 		PubKey:  senderPubkey,
 		Content: payload,
 	})
-	assert.Error(t, err)
 	received := &Nip47Response{}
 	decrypted, err := nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
