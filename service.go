@@ -294,6 +294,7 @@ func (svc *Service) PublishNip47Info(ctx context.Context) error {
 	ev := &nostr.Event{}
 	ev.Kind = NIP_47_INFO_EVENT_KIND
 	ev.Content = NIP_47_CAPABILITIES
+	ev.CreatedAt = time.Now()
 	ev.PubKey = svc.cfg.IdentityPubkey
 	err = ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
