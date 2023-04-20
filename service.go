@@ -183,6 +183,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 			"appId":     app.ID,
 			"bolt11":    bolt11,
 		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		//todo: create & send response
 		return nil, err
 	}
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}

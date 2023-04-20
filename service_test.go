@@ -14,10 +14,12 @@ import (
 )
 
 const testDB = "test.db"
+const testInvoice = "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
 
 func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
+	defer os.Remove(testDB)
 	//test not yet receivedEOS
 	res, err := svc.HandleEvent(ctx, &nostr.Event{
 		Kind: NIP_47_REQUEST_KIND,
@@ -33,7 +35,7 @@ func TestHandleEvent(t *testing.T) {
 	//test lnbc.. payload without having an app registered
 	ss, err := nip04.ComputeSharedSecret(svc.cfg.IdentityPubkey, senderPrivkey)
 	assert.NoError(t, err)
-	payload, err := nip04.Encrypt("lnbc1234", ss)
+	payload, err := nip04.Encrypt(testInvoice, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
 		Kind:    NIP_47_REQUEST_KIND,
@@ -41,15 +43,29 @@ func TestHandleEvent(t *testing.T) {
 		Content: payload,
 	})
 	assert.Error(t, err)
+	//todo check payload
 	assert.NotNil(t, res)
+	//create user
+	user := &User{ID: 0, AlbyIdentifier: "dummy"}
+	err = svc.db.Create(user).Error
+	assert.NoError(t, err)
 	//register app
+	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: "test", NostrPubkey: senderPubkey})
+	assert.NoError(t, err)
 	//test old payload
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: payload,
+	})
+	assert.NoError(t, err)
+	//todo check payload
+	assert.NotNil(t, res)
 	//test new payload
 	//test malformed payload
 	//test wrong method
 	//test LN error
 	//cleanup
-	os.Remove(testDB)
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
