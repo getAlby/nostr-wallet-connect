@@ -16,6 +16,31 @@ import (
 const testDB = "test.db"
 const testInvoice = "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
 
+const nip47PayJson = `
+{
+	"method": "pay_invoice",
+    "params": {
+        "invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+	}
+}
+`
+const nip47PayWrongMethodJson = `
+{
+	"method": "get_balance",
+    "params": {
+        "invoice": "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
+	}
+}
+`
+const nip47PayJsonNoInvoice = `
+{
+	"method": "pay_invoice",
+    "params": {
+        "something": "else"
+	}
+}
+`
+
 func TestHandleEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, _ := createTestService(t)
@@ -38,6 +63,7 @@ func TestHandleEvent(t *testing.T) {
 	payload, err := nip04.Encrypt(testInvoice, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_1",
 		Kind:    NIP_47_REQUEST_KIND,
 		PubKey:  senderPubkey,
 		Content: payload,
@@ -54,6 +80,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.NoError(t, err)
 	//test old payload
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_2",
 		Kind:    NIP_47_REQUEST_KIND,
 		PubKey:  senderPubkey,
 		Content: payload,
@@ -62,10 +89,35 @@ func TestHandleEvent(t *testing.T) {
 	//todo check payload
 	assert.NotNil(t, res)
 	//test new payload
-	//test malformed payload
+	newPayload, err := nip04.Encrypt(nip47PayJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_3",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	malformedPayload, err := nip04.Encrypt(nip47PayJsonNoInvoice, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_4",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: malformedPayload,
+	})
+	assert.Error(t, err)
 	//test wrong method
-	//test LN error
-	//cleanup
+	wrongMethodPayload, err := nip04.Encrypt(nip47PayWrongMethodJson, ss)
+	assert.NoError(t, err)
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_5",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: wrongMethodPayload,
+	})
+	assert.NoError(t, err)
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
