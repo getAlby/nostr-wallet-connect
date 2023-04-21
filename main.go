@@ -17,7 +17,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/driver/postgres"
@@ -143,7 +142,7 @@ func main() {
 	//publish event with NIP-47 info
 	err = svc.PublishNip47Info(ctx)
 	if err != nil {
-		logrus.WithError(err).Error("Could not publish NIP47 info")
+		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
 	}
 
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
