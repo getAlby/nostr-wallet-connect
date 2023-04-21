@@ -45,6 +45,25 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/", svc.IndexHandler)
+}
+
+func (svc *Service) IndexHandler(c echo.Context) error {
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	returnTo := sess.Values["return_to"]
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	if user != nil && returnTo != nil {
+		delete(sess.Values, "return_to")
+		sess.Save(c.Request(), c.Response())
+		return c.Redirect(302, fmt.Sprintf("%s", returnTo))
+	}
+	if user != nil {
+		return c.Redirect(302, "/apps")
+	}
+	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -93,6 +112,9 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
+		sess, _ := session.Get("alby_nostr_wallet_connect", c)
+		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
+		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, "/")
 	}
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
