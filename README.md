@@ -15,3 +15,11 @@ For self-hosting with your own node, set the following parameters:
 - `LND_MACAROON_FILE`:  the location where LND's `admin.macaroon` file can be found
 - `COOKIE_SECRET`: a randomly generated secret string.
 - `DATABASE_URI`: a postgres connection string or sqlite filename. Default: nostr-wallet-connect.db (sqlite)
+
+## Installation
+`cp .env.example .env`
+
+add `NOSTR_PRIVKEY`, `ALBY_CLIENT_SECRET`, `ALBY_CLIENT_ID` to .env
+
+## Development
+`go run .`
