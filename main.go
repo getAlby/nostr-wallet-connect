@@ -86,7 +86,7 @@ func main() {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
-	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
+	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
 	svc := &Service{
 		cfg: cfg,
 		db:  db,
@@ -148,7 +148,7 @@ func main() {
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
 	for {
-		svc.Logger.Info("Connecting to the relay")
+		svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
 		relay, err := nostr.RelayConnect(ctx, cfg.Relay)
 		if err != nil {
 			svc.Logger.Fatal(err)
