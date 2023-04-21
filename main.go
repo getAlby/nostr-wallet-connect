@@ -139,6 +139,12 @@ func main() {
 		wg.Done()
 	}()
 
+	//publish event with NIP-47 info
+	err = svc.PublishNip47Info(ctx)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
+	}
+
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
 	for {

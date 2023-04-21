@@ -7,9 +7,14 @@ import (
 )
 
 const (
+	NIP_47_INFO_EVENT_KIND       = 13194
 	NIP_47_REQUEST_KIND          = 23194
-	NIP_47_SUCCESS_RESPONSE_KIND = 23195
-	NIP_47_ERROR_RESPONSE_KIND   = 23196
+	NIP_47_RESPONSE_KIND         = 23195
+	NIP_47_PAY_INVOICE_METHOD    = "pay_invoice"
+	NIP_47_ERROR_INTERNAL        = "INTERNAL"
+	NIP_47_ERROR_NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
+	NIP_47_ERROR_UNAUTHORIZED    = "UNAUTHORIZED"
+	NIP_47_CAPABILITIES          = "pay_invoice"
 )
 
 type AlbyMe struct {
@@ -77,4 +82,26 @@ type PayResponse struct {
 type Identity struct {
 	gorm.Model
 	Privkey string
+}
+
+type Nip47Request struct {
+	Method string      `json:"method"`
+	Params interface{} `json:"params"`
+}
+
+type Nip47Response struct {
+	Error  *Nip47Error `json:"error,omitempty"`
+	Result interface{} `json:"result,omitempty"`
+}
+
+type Nip47Error struct {
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+type Nip47PayParams struct {
+	Invoice string `json:"invoice"`
+}
+type Nip47PayResponse struct {
+	Preimage string `json:"preimage"`
 }
