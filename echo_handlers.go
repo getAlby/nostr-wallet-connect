@@ -23,6 +23,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
+	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
 	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -107,6 +108,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
+	pubkey := c.QueryParam("pubkey")
+	referrer := c.Request().Header.Get("Referrer")
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -117,9 +120,17 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, "/")
 	}
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User": user,
-		"Name": appName,
+	var template string
+	if pubkey != "" {
+		template = "apps/new_with_pubkey.html"
+	} else {
+		template = "apps/new.html"
+	}
+	return c.Render(http.StatusOK, template, map[string]interface{}{
+		"User":     user,
+		"Name":     appName,
+		"Pubkey":   pubkey,
+		"Referrer": referrer,
 	})
 }
 

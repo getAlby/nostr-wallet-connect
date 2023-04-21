@@ -63,6 +63,15 @@
 
 <script type="text/javascript" src="/public/js/qr-creator.js"></script>
 <script type="text/javascript">
+  // notify the opener if present of the success full connect
+  window.addEventListener("load", (event) => {
+    if (!window.opener) {return;}
+    window.opener.postMessage({
+      type: 'nwc:success',
+      payload: {success: true},
+    }, "*");
+  });
+
   window.addEventListener("DOMContentLoaded", (event) => {
 
     document.location = "{{.PairingUri}}";
