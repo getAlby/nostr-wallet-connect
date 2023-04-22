@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,12 +27,6 @@ type AlbyOAuthService struct {
 	db        *gorm.DB
 	Logger    *logrus.Logger
 }
-
-//go:embed public/*
-var embeddedAssets embed.FS
-
-//go:embed views/*
-var embeddedViews embed.FS
 
 // Implement e.Renderer interface
 func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {

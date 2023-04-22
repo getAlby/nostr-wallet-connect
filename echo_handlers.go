@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -15,6 +16,12 @@ import (
 	"github.com/sirupsen/logrus"
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 )
+
+//go:embed public/*
+var embeddedAssets embed.FS
+
+//go:embed views/*
+var embeddedViews embed.FS
 
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
