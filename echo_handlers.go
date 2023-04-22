@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
@@ -31,7 +32,8 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
-	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
+	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
+	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
@@ -71,7 +73,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil {
 		return c.Redirect(302, "/apps")
 	}
-	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
+	return c.Render(http.StatusOK, fmt.Sprintf("%s/index.html", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
