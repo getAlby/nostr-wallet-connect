@@ -289,17 +289,13 @@ func (svc *Service) InitSelfHostedService(ctx context.Context, e *echo.Echo) (re
 	return lndClient, nil
 }
 
-func (svc *Service) PublishNip47Info(ctx context.Context) error {
-	relay, err := nostr.RelayConnect(ctx, svc.cfg.Relay)
-	if err != nil {
-		return err
-	}
+func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) error {
 	ev := &nostr.Event{}
 	ev.Kind = NIP_47_INFO_EVENT_KIND
 	ev.Content = NIP_47_CAPABILITIES
 	ev.CreatedAt = time.Now()
 	ev.PubKey = svc.cfg.IdentityPubkey
-	err = ev.Sign(svc.cfg.NostrSecretKey)
+	err := ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
 		return err
 	}
