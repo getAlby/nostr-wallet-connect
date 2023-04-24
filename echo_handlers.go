@@ -149,7 +149,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess, _ := session.Get("alby_nostr_wallet_connect", c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, "/")
+		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
 	var template string
 	if pubkey != "" {
