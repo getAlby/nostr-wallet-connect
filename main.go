@@ -139,8 +139,14 @@ func main() {
 		wg.Done()
 	}()
 
+	//connect to the relay
+	relay, err := nostr.RelayConnect(ctx, cfg.Relay)
+	if err != nil {
+		svc.Logger.Fatal(err)
+	}
+
 	//publish event with NIP-47 info
-	err = svc.PublishNip47Info(ctx)
+	err = svc.PublishNip47Info(ctx, relay)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
 	}
@@ -149,10 +155,6 @@ func main() {
 	//TODO: we can start this loop for multiple relays
 	for {
 		svc.Logger.Info("Connecting to the relay")
-		relay, err := nostr.RelayConnect(ctx, cfg.Relay)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
 		svc.Logger.Info("Subscribing to events")
 		sub := relay.Subscribe(ctx, svc.createFilters())
 		err = svc.StartSubscription(ctx, sub)
@@ -163,6 +165,10 @@ func main() {
 		}
 		//err being nil means that the context was canceled and we should exit the program.
 		break
+	}
+	err = relay.Close()
+	if err != nil {
+		svc.Logger.Error(err)
 	}
 	svc.Logger.Info("Graceful shutdown completed. Goodbye.")
 }
