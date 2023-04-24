@@ -23,3 +23,7 @@ add `NOSTR_PRIVKEY`, `ALBY_CLIENT_SECRET`, `ALBY_CLIENT_ID` to .env
 
 ## Development
 `go run .`
+
+To build the CSS run:
+
+`npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch`
