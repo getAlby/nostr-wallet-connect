@@ -191,6 +191,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+			"User":          user,
 			"PairingUri":    pairingUri,
 			"PairingSecret": pairingSecretKey,
 			"Pubkey":        pairingPublicKey,
