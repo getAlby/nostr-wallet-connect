@@ -1,97 +1,117 @@
 {{define "body"}}
-<a class="mb-6 block" href="/apps">
-  <i class="fas fa-arrow-left" aria-hidden="true"></i>
-  All sessions
-</a>
 
-<div class="bg-green-100 border-t-4 border-green-500 rounded-b px-4 py-3 shadow-md mb-8" role="alert">
-  <div class="flex">
-    <div class="py-1"><svg class="fill-current h-6 w-6 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-        <path
-          d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z">
-        </path>
-      </svg></div>
-    <div>
-      <p class="font-bold">Session created</p>
-      <p class="text-sm">The application session was successfully created. You can now connect your app.</p>
+<div
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
+>
+  <h2 class="font-bold text-2xl font-headline mb-2">{{.Name}}</h2>
+
+  <div
+    class="bg-green-100 border-t-4 border-green-500 rounded-b px-4 py-3 shadow-md mb-8"
+    role="alert"
+  >
+    <div class="flex">
+      <div class="py-1">
+        <svg
+          class="fill-current h-6 w-6 mr-4"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path
+            d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"
+          ></path>
+        </svg>
+      </div>
+      <div>
+        <p class="font-bold">App connection created</p>
+      </div>
     </div>
   </div>
-</div>
 
-<h2 class="font-bold text-2xl font-headline mb-2">{{.Name}}</h2>
-<hr class="mb-4 mt-4">
+  <p class="mb-4">Use the pairing secret to connect to your app.</p>
 
-<h3 class="text-xl font-headline mb-2">Connect</h3>
-<p class="mb-4">
-  Use the pairing secret to connect your app to your wallet. <br />
-</p>
-
-<p class="text-l font-bold">
-  <a onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false"
-    class=" inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
-    href="#">
-    <i class="fas fa-key mr-3" aria-hidden="true"></i>
-    Show pairing details
-  </a>
-</p>
-
-<div class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6 " style="width:432px"
-  id="pairing-details">
-  <p class="text-slate-400 text-sm text-center mb-4">
-    <span class="text-yellow-600">This pairing secret will only be shown once.</span>
+  <p class="text-orange-700 bg-orange-50 py-3 px-1 mb-6">
+    ⚠️ This pairing secret is only shown once. Don’t show it to anyone. Use it
+    only with apps you trust.
   </p>
-  <a href="{{.PairingUri}}" target="_blank" id="pairing-link">
-    <div id="connect-qrcode">
-    </div>
-  </a>
-  <p class="my-4">
-    <input type="text" id="pairing-input" value="{{.PairingUri}}" class="text-gray-400 text-sm border-slate-200"
-      style="width:320px" />
-    <a href="#" id="copy-link">
+
+  <p class="text-l font-bold">
+    <a
+      onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false"
+      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      href="#"
+    >
+      <i class="fas fa-eye mr-3" aria-hidden="true"></i>
+      Reveal pairing secret
+    </a>
+  </p>
+
+  <div
+    class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6"
+    style="width: 432px"
+    id="pairing-details"
+  >
+    <p class="my-4 w-full">
+      <input
+        type="text"
+        id="pairing-input"
+        value="{{.PairingUri}}"
+        class="text-gray-400 text-sm border-slate-200 w-full"
+      />
+    </p>
+
+    <a
+      href="#"
+      id="copy-link"
+      class="w-full text-center bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-100 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition block mb-6"
+    >
       <i id="copy-icon" class="fas fa-copy mr-2" aria-hidden="true"></i>
+      Copy Secret
     </a>
-    <a href="{{.PairingUri}}">
-      <i class="fa-solid fa-arrow-up-right-from-square"></i>
-    </a>
-  </p>
-  <p class="text-slate-400 text-sm text-center">
-    ⚠️ <span class="text-yellow-600">Use this secret only with apps you trust.</span>
-    <br />
-  </p>
 
+    <a href="{{.PairingUri}}" target="_blank" id="pairing-link">
+      <div id="connect-qrcode"></div>
+    </a>
+  </div>
 </div>
 
 <script type="text/javascript" src="/public/js/qr-creator.js"></script>
 <script type="text/javascript">
   // notify the opener if present of the success full connect
   window.addEventListener("load", (event) => {
-    if (!window.opener) {return;}
-    window.opener.postMessage({
-      type: 'nwc:success',
-      payload: {success: true},
-    }, "*");
+    document.location = "{{.PairingUri}}";
+
+    if (!window.opener) {
+      return;
+    }
+    window.opener.postMessage(
+      {
+        type: "nwc:success",
+        payload: { success: true },
+      },
+      "*"
+    );
   });
 
   window.addEventListener("DOMContentLoaded", (event) => {
+    QrCreator.render(
+      {
+        text: "{{.PairingUri}}",
+        size: 384, // in pixels
+      },
+      document.getElementById("connect-qrcode")
+    );
 
-    document.location = "{{.PairingUri}}";
-
-    QrCreator.render({
-      text: "{{.PairingUri}}",
-      size: 384 // in pixels
-    }, document.getElementById("connect-qrcode"));
-
-    document.getElementById('copy-link').addEventListener('click', async (event) => {
-      event.preventDefault();
-      const i = document.getElementById('copy-icon');
-      const value = document.getElementById('pairing-input').value;
-      await navigator.clipboard.writeText(value);
-      i.classList.toggle('fa-copy');
-      i.classList.toggle('fa-check');
-    });
-
+    document
+      .getElementById("copy-link")
+      .addEventListener("click", async (event) => {
+        event.preventDefault();
+        const i = document.getElementById("copy-icon");
+        const value = document.getElementById("pairing-input").value;
+        await navigator.clipboard.writeText(value);
+        i.classList.toggle("fa-copy");
+        i.classList.toggle("fa-check");
+      });
   });
-
 </script>
 
 {{end}}

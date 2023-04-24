@@ -1,40 +1,46 @@
 {{define "body"}}
-<a class="mb-6 block" href="/apps">
-  <i class="fas fa-arrow-left" aria-hidden="true"></i>
-  Back
-</a>
 
-<h2 class="font-bold text-2xl font-headline mb-2">{{.App.Name}}</h2>
-<div class="mb-4">
-  <p class="text-gray-400 text-sm">Session pubkey: {{.App.NostrPubkey}}</p>
-  <p class="text-gray-400 text-sm">Last accessed:
-    {{if gt .EventsCount 0 }}
-    {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
-    {{else}}
-    never
-    {{end}}
+
+<div
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
+>
+  <a class="mb-6 block" href="/apps">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+    Back
+  </a>
+
+  <h2 class="font-bold text-2xl font-headline mb-2">{{.App.Name}}</h2>
+  <div class="mb-4">
+    <p class="text-gray-400 text-sm">App connection pubkey: {{.App.NostrPubkey}}</p>
+    <p class="text-gray-400 text-sm">Last accessed:
+      {{if gt .EventsCount 0 }}
+      {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
+      {{else}}
+      never
+      {{end}}
+    </p>
+    <p class="text-sm mb-4">{{.App.Description}}</p>
+  </div>
+
+  <hr class="mb-4 mt-4">
+
+  <h3 class="text-xl font-headline mb-2">Permissions</h3>
+
+  <ul>
+    <li class="mb-2 relative pl-6">
+      <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
+      Send payments from your account.
+    </li>
+  </ul>
+
+  <hr class="mb-4 mt-4">
+
+  <h3 class="text-xl font-headline mb-2">Danger zone</h3>
+  <p class="text-sm mb-4">
+    This will revoke the permission and will no longer allow calls from this pubkey.
   </p>
-  <p class="text-sm mb-4">{{.App.Description}}</p>
+  <form method="post" action="/apps/delete/{{.App.ID}}">
+    <button type="submit" class="text-red-400 inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>
+  </form>
 </div>
-
-<hr class="mb-4 mt-4">
-
-<h3 class="text-xl font-headline mb-2">Permissions</h3>
-
-<ul>
-  <li class="mb-2 relative pl-6">
-    <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
-    Send payments from your account.
-  </li>
-</ul>
-
-<hr class="mb-4 mt-4">
-
-<h3 class="text-xl font-headline mb-2">Danger zone</h3>
-<p class="text-sm mb-4">
-  This will revoke the permission and will no longer allow calls from this pubkey.
-</p>
-<form method="post" action="/apps/delete/{{.App.ID}}">
-  <button type="submit" class="text-red-400">Disconnect</button>
-</form>
 {{end}}
