@@ -1,6 +1,7 @@
-nostr-wallet-connect
+.DS_Store
 .env
-*.macaroon
 *.db
+*.macaroon
 node_modules
+nostr-wallet-connect
 nwc.db

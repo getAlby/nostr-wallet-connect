@@ -1,42 +1,44 @@
 {{define "body"}}
-<div class="mb-6 flex justify-between">
-  <h2 class="font-bold text-2xl font-headline py-3">
-    Your app sessions
-  </h2>
 
-  <a class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition "
-    href="/apps/new">
-    <i class="fas fa-plus mr-3" aria-hidden="true"></i>
-    New session
-  </a>
+<div class="w-full lg:w-8/12 mx-auto">
+  <div class="mb-6 flex justify-between">
+    <h2 class="font-bold text-2xl font-headline py-3">Your connected apps</h2>
+
+    <a
+      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      href="/apps/new"
+    >
+      <i class="fas fa-plus mr-3" aria-hidden="true"></i>
+      Connect new app
+    </a>
+  </div>
+
+  <p class="text-sm mb-4"></p>
+
+  <table
+    class="table-fixed w-full text-sm text-left text-gray-500 dark:text-gray-400"
+  >
+    <thead
+      class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+    >
+      <tr>
+        <th scope="col" class="px-6 py-3 w-2/6">Name</th>
+        <th scope="col" class="px-6 py-3 w-1/6"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .Apps}}
+      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+        <td class="px-6 py-4">
+          <a href="/apps/{{.ID}}" class="underline">{{.Name}}</a>
+        </td>
+        <td class="px-6 py-4">
+          <a href="/apps/{{.ID}}">Details</a>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
 </div>
-
-<p class="text-sm mb-4">
-</p>
-
-<table class="table-fixed w-full text-sm text-left text-gray-500 dark:text-gray-400">
-  <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-    <tr>
-      <th scope="col" class="px-6 py-3 w-2/6">Name</th>
-      <th scope="col" class="px-6 py-3 w-3/6 hidden sm:table-cell">Pubkey</th>
-      <th scope="col" class="px-6 py-3 w-1/6"></th>
-    </tr>
-  </thead>
-  <tbody>
-    {{range .Apps}}
-    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-      <td class="px-6 py-4">
-        <a href="/apps/{{.ID}}" class="underline">{{.Name}}</a>
-      </td>
-      <td class="px-6 py-4 text-ellipsis overflow-hidden hidden sm:table-cell">
-        <a href="/apps/{{.ID}}">{{.NostrPubkey}}</a>
-      </td>
-      <td class="px-6 py-4 ">
-        <a href="/apps/{{.ID}}">Details</a>
-      </td>
-    </tr>
-    {{end}}
-  </tbody>
-</table>
 
 {{end}}

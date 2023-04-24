@@ -749,16 +749,12 @@ select {
   margin-bottom: 1.5rem;
 }
 
-.-mr-12 {
-  margin-right: -3rem;
-}
-
-.-mt-12 {
-  margin-top: -3rem;
-}
-
 .mb-1 {
   margin-bottom: 0.25rem;
+}
+
+.mb-10 {
+  margin-bottom: 2.5rem;
 }
 
 .mb-2 {
@@ -777,8 +773,8 @@ select {
   margin-bottom: 2rem;
 }
 
-.ml-4 {
-  margin-left: 1rem;
+.ml-1 {
+  margin-left: 0.25rem;
 }
 
 .ml-6 {
@@ -797,6 +793,10 @@ select {
   margin-right: 1rem;
 }
 
+.mt-10 {
+  margin-top: 2.5rem;
+}
+
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -807,10 +807,6 @@ select {
 
 .mt-6 {
   margin-top: 1.5rem;
-}
-
-.mt-8 {
-  margin-top: 2rem;
 }
 
 .block {
@@ -845,32 +841,28 @@ select {
   width: 16.666667%;
 }
 
-.w-10 {
-  width: 2.5rem;
-}
-
-.w-2\/5 {
-  width: 40%;
-}
-
 .w-2\/6 {
   width: 33.333333%;
-}
-
-.w-24 {
-  width: 6rem;
-}
-
-.w-3\/6 {
-  width: 50%;
 }
 
 .w-6 {
   width: 1.5rem;
 }
 
+.w-8 {
+  width: 2rem;
+}
+
 .w-80 {
   width: 20rem;
+}
+
+.w-\[24px\] {
+  width: 24px;
+}
+
+.w-\[65px\] {
+  width: 65px;
 }
 
 .w-full {
@@ -915,14 +907,6 @@ select {
 
 .justify-between {
   justify-content: space-between;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-}
-
-.text-ellipsis {
-  text-overflow: ellipsis;
 }
 
 .rounded-lg {
@@ -979,11 +963,6 @@ select {
   border-color: rgb(226 232 240 / var(--tw-border-opacity));
 }
 
-.bg-black {
-  --tw-bg-opacity: 1;
-  background-color: rgb(0 0 0 / var(--tw-bg-opacity));
-}
-
 .bg-gray-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(249 250 251 / var(--tw-bg-opacity));
@@ -994,28 +973,14 @@ select {
   background-color: rgb(220 252 231 / var(--tw-bg-opacity));
 }
 
+.bg-purple-700 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(126 34 206 / var(--tw-bg-opacity));
+}
+
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
-}
-
-.bg-gradient-to-tr {
-  background-image: linear-gradient(to top right, var(--tw-gradient-stops));
-}
-
-.from-\[\#FFDF6F\] {
-  --tw-gradient-from: #FFDF6F;
-  --tw-gradient-to: rgb(255 223 111 / 0);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-.via-\[\#F8C455\] {
-  --tw-gradient-to: rgb(248 196 85 / 0);
-  --tw-gradient-stops: var(--tw-gradient-from), #F8C455, var(--tw-gradient-to);
-}
-
-.to-\[\#ECA572\] {
-  --tw-gradient-to: #ECA572;
 }
 
 .fill-current {
@@ -1032,6 +997,11 @@ select {
 
 .p-6 {
   padding: 1.5rem;
+}
+
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .px-10 {
@@ -1116,6 +1086,15 @@ select {
   line-height: 2.25rem;
 }
 
+.text-\[20px\] {
+  font-size: 20px;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -1137,10 +1116,6 @@ select {
 
 .font-medium {
   font-weight: 500;
-}
-
-.font-semibold {
-  font-weight: 600;
 }
 
 .uppercase {
@@ -1181,6 +1156,11 @@ select {
   color: rgb(21 128 61 / var(--tw-text-opacity));
 }
 
+.text-purple-700 {
+  --tw-text-opacity: 1;
+  color: rgb(126 34 206 / var(--tw-text-opacity));
+}
+
 .text-red-400 {
   --tw-text-opacity: 1;
   color: rgb(248 113 113 / var(--tw-text-opacity));
@@ -1189,6 +1169,11 @@ select {
 .text-slate-400 {
   --tw-text-opacity: 1;
   color: rgb(148 163 184 / var(--tw-text-opacity));
+}
+
+.text-white {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
 .text-yellow-600 {
@@ -1235,9 +1220,9 @@ select {
   background-color: rgb(249 250 251 / var(--tw-bg-opacity));
 }
 
-.hover\:bg-neutral-800:hover {
+.hover\:bg-purple-900:hover {
   --tw-bg-opacity: 1;
-  background-color: rgb(38 38 38 / var(--tw-bg-opacity));
+  background-color: rgb(88 28 135 / var(--tw-bg-opacity));
 }
 
 .focus\:border-blue-500:focus {
@@ -1338,18 +1323,6 @@ select {
 }
 
 @media (min-width: 640px) {
-  .sm\:block {
-    display: block;
-  }
-
-  .sm\:table-cell {
-    display: table-cell;
-  }
-
-  .sm\:w-3\/5 {
-    width: 60%;
-  }
-
   .sm\:text-2xl {
     font-size: 1.5rem;
     line-height: 2rem;
@@ -1372,6 +1345,11 @@ select {
 
   .md\:flex-1 {
     flex: 1 1 0%;
+  }
+
+  .md\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
 
