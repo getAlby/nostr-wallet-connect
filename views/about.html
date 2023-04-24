@@ -1,0 +1,131 @@
+{{define "body"}}
+
+<div class="flex">
+
+  <div class="w-full sm:w-3/5 ">
+    <h1 class="font-headline font-bold text-3xl sm:text-4xl mb-6">
+      <img alt="Nostr" class="inline w-10" src="/public/images/running-nostr.gif?v202303281">
+      Nostr Wallet Connect
+    </h1>
+    <h2 class="text-2xl mb-4">
+      Zaps always at your fingertips
+    </h2>
+    <p class="mb-1 leading-relaxed">
+      Nostr Wallet Connect allows you to securely connect your bitcoin lightning wallet to Nostr clients and
+      applications.
+    </p>
+
+    <a class="mt-4 inline-flex bg-black cursor-pointer font-semibold hover:bg-neutral-800 items-center justify-center rounded-md  transition-all px-10 py-4 text-black bg-gradient-to-tr from-[#FFDF6F] to-[#ECA572] via-[#F8C455]"
+      href="/alby/auth?v202303281">
+      <i class="fas fa-link mr-3" aria-hidden="true"></i>
+      Enable for your Alby Account
+    </a>
+  </div>
+
+  <div class="ml-6 -mr-12 -mt-12 w-2/5 hidden sm:block">
+    <img src="/public/images/alby-everywhere.svg?v202303281" width="400" height="400" class="w-full"
+      alt="Alby everywhere" />
+  </div>
+
+</div>
+<hr class="mb-8 mt-8">
+
+<h3 class="font-bold text-xl font-headline mb-4">
+  How does it work?
+</h3>
+<ol class="list-decimal list-inside leading-relaxed">
+  <li class="mb-2">
+    <strong>Create a new app session</strong>:
+    <p class="ml-6">
+      Enable the application by creating a permissioned session. This session can be revoked at any time.
+    </p>
+  </li>
+  <li class="mb-2">
+    <strong>Connect your app</strong>:<br />
+    <p class="ml-6">
+      Connect your application by adding the session secret. Either by scanning the connect QR code or clicking a link.
+    </p>
+  </li>
+  <li class="mb-2">
+    <strong>Done</strong>:<br />
+    <p class="ml-6">
+      Zapp and Boost! Your lightning wallet is available where you need it. <br />
+      And if you ever want to disable it again, simply disconnect the session.
+    </p>
+  </li>
+</ol>
+
+<hr class="mb-8 mt-8">
+
+<h3 class="font-bold text-2xl font-headline mb-4">
+  FAQs
+</h3>
+
+<h4 class="font-bold text-l font-headline mt-4">
+  How does it work?
+</h4>
+<p class="leading-relaxed">
+  Nostr Wallet Connect uses the existing Nostr infrastructure to allow applications to communicate with lightning
+  wallets. This makes it easy for developers to integrate and gives the users full flexibility on choice.
+  <br />
+  To learn more about the details have a look at <a href="https://github.com/getAlby/nips/blob/master/47.md"
+    class="underline">the specs
+    (NIP47)</a>
+</p>
+
+<h4 class="font-bold text-l font-headline mt-6">
+  Which apps support it?
+</h4>
+<p class="leading-relaxed">
+  <a href="https://linktr.ee/amethyst.social" class="underline">Amethyst</a> is the first Nostr Client to fully support
+  Nostr Wallet
+  Connect. More are working on support for it and are following shortly.
+</p>
+
+<h4 class="font-bold text-l font-headline mt-6">
+  Is it open source?
+</h4>
+<p class="leading-relaxed">
+  Of course! Nostr Wallet Connect is an open standard and our implementation is <a
+    href="https://github.com/getAlby/nostr-wallet-connect/" class="underline">open source on GitHub</a>
+</p>
+
+<h4 class="font-bold text-l font-headline mt-6">
+  Can I run my own?
+</h4>
+<p class="leading-relaxed">
+  Yes, Nostr Wallet Connect is for every wallet and can easily be self-hosted.<br>
+  We are looking for contributors to add support for more wallet backends. If you're interested please contact us <a
+    href="https://github.com/getAlby/nostr-wallet-connect/" class="underline">on GitHub</a> or <a
+    href="mailto:hello@getalby.com" class="underline">hello@getalby.com</a>
+</p>
+
+<hr class="mb-8 mt-8">
+
+<h3 class="font-bold text-2xl font-headline mb-4">
+  For developers
+</h3>
+<p class="mb-1 leading-relaxed">
+  Nostr Wallet Connect is an open protocol enabling applications to interact with bitcoin lightning wallets.
+  It allows users to connect their existing wallets to your application allowing you to easily integrate bitcoin
+  lightning functionality but still focus on the core functionality of your app.
+</p>
+<ul class="list-inside list-disc">
+  <li>
+    <a href="https://github.com/getAlby/nips/blob/master/47.md" class="underline">Read the specs (NIP47)</a>
+  </li>
+  <li>
+    <a href="https://github.com/getAlby/alby-js-sdk#nostr-wallet-connect-documentation" class="underline">Look at the
+      JavaScript
+      SDK</a>
+  </li>
+</ul>
+
+<hr class="mb-8 mt-8">
+
+<p class="sm:text-2xl font-bold mb-4">
+  Happy zapping!
+  <img src="/public/images/nostr-bitcoin.png" alt="Bitcoin on Nostr" class="w-80" />
+</p>
+
+{{end}}
