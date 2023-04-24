@@ -139,8 +139,15 @@ func main() {
 		wg.Done()
 	}()
 
+	//connect to the relay
+	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
+	relay, err := nostr.RelayConnect(ctx, cfg.Relay)
+	if err != nil {
+		svc.Logger.Fatal(err)
+	}
+
 	//publish event with NIP-47 info
-	err = svc.PublishNip47Info(ctx)
+	err = svc.PublishNip47Info(ctx, relay)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
 	}
@@ -148,21 +155,24 @@ func main() {
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
 	for {
-		svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
-		relay, err := nostr.RelayConnect(ctx, cfg.Relay)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
 		svc.Logger.Info("Subscribing to events")
 		sub := relay.Subscribe(ctx, svc.createFilters())
 		err = svc.StartSubscription(ctx, sub)
 		if err != nil {
 			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 			svc.Logger.WithError(err).Error("Got an error from the relay. Reconnecting...")
+			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
 			continue
 		}
 		//err being nil means that the context was canceled and we should exit the program.
 		break
+	}
+	err = relay.Close()
+	if err != nil {
+		svc.Logger.Error(err)
 	}
 	svc.Logger.Info("Graceful shutdown completed. Goodbye.")
 }
