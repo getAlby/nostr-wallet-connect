@@ -27,6 +27,7 @@
     </div>
   </div>
 
+  {{if not (eq .PairingSecret "")}}
   <p class="mb-4">Use the pairing secret to connect to your app.</p>
 
   <p class="text-orange-700 bg-orange-50 py-3 px-1 mb-6">
@@ -44,6 +45,7 @@
       Reveal pairing secret
     </a>
   </p>
+  {{end}}
 
   <div
     class="hidden my-6 mx-auto border border-gray-600 border-2 rounded-md p-6"
