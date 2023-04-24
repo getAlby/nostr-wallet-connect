@@ -109,11 +109,11 @@ func main() {
 	var wg sync.WaitGroup
 	switch cfg.LNBackendType {
 	case LNDBackendType:
-		lndClient, err := svc.InitSelfHostedService(ctx, e)
+		lndClient, err := NewLNDService(ctx, svc, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		svc.lnClient = &LNDWrapper{lndClient}
+		svc.lnClient = lndClient
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(svc, e)
 		if err != nil {
