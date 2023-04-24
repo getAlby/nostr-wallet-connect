@@ -49,6 +49,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
+	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
@@ -71,6 +72,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
 }
 
@@ -90,6 +92,10 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 		return c.Redirect(302, "/apps")
 	}
 	return c.Render(http.StatusOK, fmt.Sprintf("%s/index.html", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
+}
+
+func (svc *Service) AboutHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "about.html", map[string]interface{}{})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
