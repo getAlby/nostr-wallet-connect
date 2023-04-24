@@ -161,6 +161,10 @@ func main() {
 		if err != nil {
 			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 			svc.Logger.WithError(err).Error("Got an error from the relay. Reconnecting...")
+			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
 			continue
 		}
 		//err being nil means that the context was canceled and we should exit the program.
