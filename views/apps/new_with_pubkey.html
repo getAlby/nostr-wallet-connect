@@ -7,8 +7,9 @@
 <h2 class="font-bold text-2xl font-headline mb-2">Connect to this app?</h2>
 <p class="text-sm mb-4">By clicking connect you give this application access to your wallet.</p>
 
-<form method="POST" action="/apps">
-  <input type="hidden" name="pubkey" value="{{.Pubkey}}" id="pubkey" />
+<form method="POST" action="/apps" accept-charset="UTF-8">
+  <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
+  <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
 
   {{if eq .Name "" }}
   <div class="mb-4">

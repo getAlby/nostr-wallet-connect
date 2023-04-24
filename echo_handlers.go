@@ -140,7 +140,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	pubkey := c.QueryParam("pubkey")
-	referrer := c.Request().Header.Get("Referrer")
+	returnTo := c.QueryParam("return_to")
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"User":     user,
 		"Name":     appName,
 		"Pubkey":   pubkey,
-		"Referrer": referrer,
+		"ReturnTo": returnTo,
 	})
 }
 
@@ -186,6 +186,9 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 
 	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
+		if c.FormValue("returnTo") != "" {
+			return c.Redirect(302, c.FormValue("returnTo"))
+		}
 		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 			"PairingUri":    pairingUri,
