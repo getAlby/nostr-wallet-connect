@@ -41,7 +41,7 @@
       class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
       href="#"
     >
-      <i class="fas fa-eye mr-3" aria-hidden="true"></i>
+      <img src="public/images/visible.svg" width="24" height="24" />
       Reveal pairing secret
     </a>
   </p>
@@ -86,7 +86,7 @@
     // this fails if the user does not support it and the user sees the normal
     if (!window.opener) {
       // delay execution a bit to make sure the page can finish loading
-      setTimeout(function() {
+      setTimeout(function () {
         document.location = "{{.PairingUri}}";
       }, 200);
       return;
