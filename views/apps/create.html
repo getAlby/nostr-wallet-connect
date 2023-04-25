@@ -41,7 +41,12 @@
       class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
       href="#"
     >
-      <img src="public/images/visible.svg" width="24" height="24" />
+      <img
+        src="public/images/visible.svg"
+        width="24"
+        height="24"
+        class="mr-2"
+      />
       Reveal pairing secret
     </a>
   </p>
@@ -66,7 +71,13 @@
       id="copy-link"
       class="w-full text-center bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-100 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition block mb-6"
     >
-      <i id="copy-icon" class="fas fa-copy mr-2" aria-hidden="true"></i>
+      <img
+        src="public/images/copy.svg"
+        width="24"
+        height="24"
+        class="inline-block"
+        id="copy-icon"
+      />
       Copy Secret
     </a>
 
@@ -113,11 +124,10 @@
       .getElementById("copy-link")
       .addEventListener("click", async (event) => {
         event.preventDefault();
-        const i = document.getElementById("copy-icon");
+        const copyIcon = document.getElementById("copy-icon");
         const value = document.getElementById("pairing-input").value;
         await navigator.clipboard.writeText(value);
-        i.classList.toggle("fa-copy");
-        i.classList.toggle("fa-check");
+        copyIcon.src = "public/images/check.svg";
       });
   });
 </script>
