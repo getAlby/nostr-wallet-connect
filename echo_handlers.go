@@ -1,10 +1,15 @@
 package main
 
 import (
+	"embed"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"net/http"
+	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
@@ -16,6 +21,26 @@ import (
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
 )
 
+//go:embed public/*
+var embeddedAssets embed.FS
+
+//go:embed views/*
+var embeddedViews embed.FS
+
+type TemplateRegistry struct {
+	templates map[string]*template.Template
+}
+
+// Implement e.Renderer interface
+func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	tmpl, ok := t.templates[name]
+	if !ok {
+		err := errors.New("Template not found -> " + name)
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "layout.html", data)
+}
+
 func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 	templates := make(map[string]*template.Template)
@@ -23,7 +48,10 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
-	templates["index.html"] = template.Must(template.ParseFS(embeddedViews, "views/index.html", "views/layout.html"))
+	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
+	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
+	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
+	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
@@ -45,6 +73,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/apps", svc.AppsCreateHandler)
 	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
+	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
 }
 
@@ -63,7 +92,11 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil {
 		return c.Redirect(302, "/apps")
 	}
-	return c.Render(http.StatusOK, "index.html", map[string]interface{}{})
+	return c.Render(http.StatusOK, fmt.Sprintf("%s/index.html", strings.ToLower(svc.cfg.LNBackendType)), map[string]interface{}{})
+}
+
+func (svc *Service) AboutHandler(c echo.Context) error {
+	return c.Render(http.StatusOK, "about.html", map[string]interface{}{})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -107,6 +140,8 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
+	pubkey := c.QueryParam("pubkey")
+	returnTo := c.QueryParam("return_to")
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -115,11 +150,19 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess, _ := session.Get("alby_nostr_wallet_connect", c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, "/")
+		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
-	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User": user,
-		"Name": appName,
+	var template string
+	if pubkey != "" {
+		template = "apps/new_with_pubkey.html"
+	} else {
+		template = "apps/new.html"
+	}
+	return c.Render(http.StatusOK, template, map[string]interface{}{
+		"User":     user,
+		"Name":     appName,
+		"Pubkey":   pubkey,
+		"ReturnTo": returnTo,
 	})
 }
 
@@ -140,12 +183,22 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
 	} else {
 		pairingPublicKey = c.FormValue("pubkey")
+		//validate public key
+		decoded, err := hex.DecodeString(pairingPublicKey)
+		if err != nil || len(decoded) != 32 {
+			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
+			return c.Redirect(302, "/apps")
+		}
 	}
 
 	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
+		if c.FormValue("returnTo") != "" {
+			return c.Redirect(302, c.FormValue("returnTo"))
+		}
 		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+			"User":          user,
 			"PairingUri":    pairingUri,
 			"PairingSecret": pairingSecretKey,
 			"Pubkey":        pairingPublicKey,

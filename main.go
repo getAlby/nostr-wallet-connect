@@ -86,7 +86,7 @@ func main() {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
-	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
+	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
 	svc := &Service{
 		cfg: cfg,
 		db:  db,
@@ -109,11 +109,11 @@ func main() {
 	var wg sync.WaitGroup
 	switch cfg.LNBackendType {
 	case LNDBackendType:
-		lndClient, err := svc.InitSelfHostedService(ctx, e)
+		lndClient, err := NewLNDService(ctx, svc, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		svc.lnClient = &LNDWrapper{lndClient}
+		svc.lnClient = lndClient
 	case AlbyBackendType:
 		oauthService, err := NewAlbyOauthService(svc, e)
 		if err != nil {
@@ -140,6 +140,7 @@ func main() {
 	}()
 
 	//connect to the relay
+	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
 	relay, err := nostr.RelayConnect(ctx, cfg.Relay)
 	if err != nil {
 		svc.Logger.Fatal(err)
@@ -154,7 +155,6 @@ func main() {
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
 	for {
-		svc.Logger.Info("Connecting to the relay")
 		svc.Logger.Info("Subscribing to events")
 		sub := relay.Subscribe(ctx, svc.createFilters())
 		err = svc.StartSubscription(ctx, sub)

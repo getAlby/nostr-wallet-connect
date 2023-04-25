@@ -3,12 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
-	"io"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -18,31 +15,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type TemplateRegistry struct {
-	templates map[string]*template.Template
-}
-
 type AlbyOAuthService struct {
 	cfg       *Config
 	oauthConf *oauth2.Config
 	db        *gorm.DB
 	Logger    *logrus.Logger
-}
-
-//go:embed public/*
-var embeddedAssets embed.FS
-
-//go:embed views/*
-var embeddedViews embed.FS
-
-// Implement e.Renderer interface
-func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl, ok := t.templates[name]
-	if !ok {
-		err := errors.New("Template not found -> " + name)
-		return err
-	}
-	return tmpl.ExecuteTemplate(w, "layout.html", data)
 }
 
 func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, err error) {

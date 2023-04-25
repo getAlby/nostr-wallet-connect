@@ -1,47 +1,61 @@
 {{define "layout.html"}}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Alby - Nostr Wallet Connect</title>
+    <link href="/public/css/application.css?v202303281" rel="stylesheet" />
+    <link href="/public/css/fonts.css?v202303281" rel="stylesheet" />
+    <script
+      src="https://kit.fontawesome.com/648ec8a8fe.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="icon" href="/public/images/alby_icon_yellow_128x128.png" />
+  </head>
 
-  <title>Alby - Nostr Wallet Connect</title>
-  <link href="/public/css/application.css?v202303281" rel="stylesheet" />
-  <link href="/public/css/fonts.css?v202303281" rel="stylesheet" />
-  <script src="https://kit.fontawesome.com/648ec8a8fe.js" crossorigin="anonymous"></script>
-  <link rel="icon" href="https://getalby.com/alby_icon_yellow_128x128.png">
-</head>
-
-<body class="bg-gray-50">
-  <nav class="bg-white border-b border-gray-200 mb-4" data-controller="navbar">
-    <div class="container mx-auto">
-      <div class="w-full py-2 lg:w-8/12 mx-auto flex flex-wrap justify-between items-center" style="height: 56px">
-        <a href="/apps">
-          <img alt="Alby logo" width="1210" height="525" class="w-24 ml-4 md:ml-0"
-            src="/public/images/logo.svg?v202303281" />
-        </a>
-        <div class="hidden md:flex-1 md:flex items-center">
-          <ul class="flex flex-wrap mx-auto pl-10 pr-10">
-            <li class="mx-2 flex">
-            </li>
-          </ul>
-          <div>
-            {{if .User}}
-            <a class="text-gray-400 pl-5 py-2 font-medium" rel="nofollow" href="/logout">Logout</a>
-            {{end}}
+  <body class="bg-gray-50">
+    <nav
+      class="bg-white border-b border-gray-200 mb-4"
+      data-controller="navbar"
+    >
+      <div class="container mx-auto">
+        <div
+          class="w-full py-2 lg:w-8/12 mx-auto flex flex-wrap justify-between items-center"
+          style="height: 56px"
+        >
+          <a href="/" class="font-headline text-[20px]">
+            <img
+              alt=""
+              class="inline w-8 ml-1 md:ml-0"
+              width="128"
+              height="120"
+              src="/public/images/nwc-logo.svg"
+            />
+            Nostr Wallet Connect
+          </a>
+          <div class="hidden md:flex-1 md:flex items-center">
+            <ul class="flex flex-wrap mx-auto pl-10 pr-10">
+              <li class="mx-2 flex"></li>
+            </ul>
+            <div>
+              {{if .User}}
+              <a
+                class="text-gray-400 pl-5 py-2 font-medium"
+                rel="nofollow"
+                href="/logout"
+                >Logout</a
+              >
+              {{end}}
+            </div>
           </div>
         </div>
-
       </div>
-    </div>
-  </nav>
-  <main class="container mx-auto pb-4 flex flex-col">
-    <div class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12">
+    </nav>
+    <main class="container mx-auto px-1 md:px-0 pb-4 flex flex-col">
       {{template "body" .}}
-    </div>
-  </main>
-</body>
-
+    </main>
+  </body>
 </html>
 {{end}}
