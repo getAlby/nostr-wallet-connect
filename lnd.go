@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/getAlby/lndhub.go/lnd"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
@@ -15,19 +18,34 @@ type LNClient interface {
 
 // wrap it again :sweat_smile:
 // todo: drop dependency on lndhub package
-type LNDWrapper struct {
+type LNDService struct {
 	client *lnd.LNDWrapper
+	db     *gorm.DB
+	Logger *logrus.Logger
 }
 
-func (lnd *LNDWrapper) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
-	resp, err := lnd.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
+func (svc *LNDService) AuthHandler(c echo.Context) error {
+	user := &User{}
+	err := svc.db.FirstOrInit(user, User{AlbyIdentifier: "lnd"}).Error
+	if err != nil {
+		return err
+	}
+
+	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess.Values["user_id"] = user.ID
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(302, "/")
+}
+
+func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
+	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
 	if err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(resp.PaymentPreimage), nil
 }
 
-func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDWrapper, err error) {
+func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LNDService, err error) {
 	lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
@@ -51,7 +69,10 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 		return nil, err
 	}
 
+	lndService := &LNDService{client: lndClient, Logger: svc.Logger, db: svc.db}
+
+	e.GET("/lnd/auth", lndService.AuthHandler)
 	svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
 
-	return &LNDWrapper{lndClient}, nil
+	return lndService, nil
 }
