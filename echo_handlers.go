@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
@@ -182,6 +183,12 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		pairingPublicKey, _ = nostr.GetPublicKey(pairingSecretKey)
 	} else {
 		pairingPublicKey = c.FormValue("pubkey")
+		//validate public key
+		decoded, err := hex.DecodeString(pairingPublicKey)
+		if err != nil || len(decoded) != 32 {
+			svc.Logger.Errorf("Invalid public key format: %s", pairingPublicKey)
+			return c.Redirect(302, "/apps")
+		}
 	}
 
 	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
