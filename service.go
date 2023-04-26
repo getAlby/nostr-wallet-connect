@@ -65,13 +65,13 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 					svc.Logger.Error(err)
 				}
 				if resp != nil {
+					status := sub.Relay.Publish(ctx, *resp)
 					nostrEvent := NostrEvent{}
 					result := svc.db.Where("nostr_id = ?", event.ID).First(&nostrEvent)
 					if result.Error != nil {
 						svc.Logger.Error(result.Error)
 						return
 					}
-					status := sub.Relay.Publish(ctx, *resp)
 					nostrEvent.State = "replied" // TODO: check if publish was successful
 					nostrEvent.ReplyId = resp.ID
 					svc.db.Save(&nostrEvent)
