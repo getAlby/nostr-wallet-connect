@@ -14,6 +14,8 @@ type Config struct {
 	LNDAddress       string `envconfig:"LND_ADDRESS"`
 	LNDCertFile      string `envconfig:"LND_CERT_FILE"`
 	LNDMacaroonFile  string `envconfig:"LND_MACAROON_FILE"`
+	LNBitsHost       string `envconfig:"LNBITS_HOST"`
+	LnBitsUmbrel     string `envconfig:"LNBITS_UMBREL"`
 	AlbyAPIURL       string `envconfig:"ALBY_API_URL" default:"https://api.getalby.com"`
 	AlbyClientId     string `envconfig:"ALBY_CLIENT_ID"`
 	AlbyClientSecret string `envconfig:"ALBY_CLIENT_SECRET"`

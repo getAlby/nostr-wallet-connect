@@ -35,14 +35,17 @@ type User struct {
 }
 
 type App struct {
-	ID          uint   `gorm:"primaryKey"`
-	UserId      uint   `gorm:"index" validate:"required"`
-	User        User   `gorm:"constraint:OnDelete:CASCADE"`
-	Name        string `validate:"required"`
-	Description string
-	NostrPubkey string `gorm:"index"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                       uint   `gorm:"primaryKey"`
+	UserId                   uint   `gorm:"index" validate:"required"`
+	User                     User   `gorm:"constraint:OnDelete:CASCADE"`
+	Name                     string `validate:"required"`
+	Description              string
+	NostrPubkey              string `gorm:"index"`
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+	Backend                  string
+	BackendOptionsLNBitsKey  string
+	BackendOptionsLNBitsHost string
 }
 
 type NostrEvent struct {

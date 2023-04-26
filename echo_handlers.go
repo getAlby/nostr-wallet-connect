@@ -161,6 +161,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, template, map[string]interface{}{
 		"User":     user,
 		"Name":     appName,
+		"Backend":  svc.cfg.LNBackendType,
 		"Pubkey":   pubkey,
 		"ReturnTo": returnTo,
 	})
@@ -191,7 +192,27 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 	}
 
-	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
+	backend := "alby"
+	var lnbitsadminkey = ""
+	var lnbitshost = ""
+
+	if svc.cfg.LNBackendType != AlbyBackendType {
+		backend = "lnd"
+		if c.FormValue("backend") != "" {
+			backend = c.FormValue("backend")
+		}
+		if backend == "lnbits" {
+			if c.FormValue("lnbitsadminkey") != "" {
+				lnbitsadminkey = c.FormValue("lnbitsadminkey")
+			}
+			//use local instance from config if not overwritten
+			if c.FormValue("lnbitshost") != "" {
+				lnbitshost = c.FormValue("lnbitshost")
+			}
+		}
+	}
+
+	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey, Backend: backend, BackendOptionsLNBitsKey: lnbitsadminkey, BackendOptionsLNBitsHost: lnbitshost})
 	if err == nil {
 		if c.FormValue("returnTo") != "" {
 			return c.Redirect(302, c.FormValue("returnTo"))

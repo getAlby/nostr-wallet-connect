@@ -27,7 +27,7 @@ type Service struct {
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
 	userID := sess.Values["user_id"]
-	if svc.cfg.LNBackendType == LNDBackendType {
+	if svc.cfg.LNBackendType != AlbyBackendType {
 		//if we self-host, there is always only one user
 		userID = 1
 	}
@@ -199,12 +199,30 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
-		"eventId":   event.ID,
-		"eventKind": event.Kind,
-		"appId":     app.ID,
-		"bolt11":    bolt11,
+		"eventId":    event.ID,
+		"eventKind":  event.Kind,
+		"appId":      app.ID,
+		"appBackend": app.Backend,
+		"bolt11":     bolt11,
 	}).Info("Sending payment")
 
+	Client := svc.lnClient
+	if app.Backend == "lnbits" {
+		var lnbitsClient *LNClient
+		var host = app.BackendOptionsLNBitsHost
+		if app.BackendOptionsLNBitsHost == "" {
+			if svc.cfg.LNBitsHost != "" {
+				host = svc.cfg.LNBitsHost
+			} else {
+				host = "http://" + svc.cfg.LnBitsUmbrel + ":3007"
+			}
+		}
+		var options = LNBitsOptions{
+			AdminKey: app.BackendOptionsLNBitsKey,
+			Host:     host,
+		}
+		svc.lnClient = &LNBitsWrapper{lnbitsClient, options}
+	}
 	preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -223,6 +241,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		}, ss)
 	}
 	payment.Preimage = preimage
+	svc.lnClient = Client
 	nostrEvent.State = "executed"
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
