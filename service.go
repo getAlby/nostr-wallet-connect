@@ -117,7 +117,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		if err != nil {
 			return nil, err
 		}
-		resp, err := svc.createResponse(event, Nip47Response{
+		resp, _ := svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
