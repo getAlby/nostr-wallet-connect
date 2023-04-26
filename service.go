@@ -63,7 +63,6 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 				resp, err := svc.HandleEvent(ctx, event)
 				if err != nil {
 					svc.Logger.Error(err)
-					return
 				}
 				if resp != nil {
 					nostrEvent := NostrEvent{}
