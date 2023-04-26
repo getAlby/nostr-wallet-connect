@@ -17,6 +17,7 @@
       never
       {{end}}
     </p>
+    <p class="text-gray-400 text-sm">Session Backend: {{.App.Backend}}</p>
   </div>
 
   <hr class="mb-4 mt-4">
@@ -36,7 +37,7 @@
   <p class="text-sm mb-4">
     This will revoke the permission and will no longer allow calls from this pubkey.
   </p>
-  <p class="text-gray-400 text-sm">Session Backend: {{.App.Backend}}</p>
+
   <form method="post" action="/apps/delete/{{.App.ID}}">
     <button type="submit"
       class="text-red-400 inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>
