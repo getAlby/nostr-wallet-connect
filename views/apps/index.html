@@ -31,6 +31,13 @@
         </tr>
       </thead>
       <tbody>
+        {{if not .Apps}}
+          <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
+            <td colspan="3" class="px-6 py-16 text-center text-gray-500 dark:text-gray-400">
+              No active sessions at the moment
+            </td>
+          </tr>
+        {{else}}
         {{range .Apps}}
         <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-purple-50" onclick="window.location='/apps/{{.ID}}'">
           <td class="px-6 py-4">
@@ -47,6 +54,7 @@
             Details
           </td>
         </tr>
+        {{end}}
         {{end}}
       </tbody>
     </table>
