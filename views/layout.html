@@ -32,16 +32,50 @@
           </a>
           <div class="hidden md:flex-1 md:flex items-center">
             <ul class="flex flex-wrap mx-auto pl-10 pr-10">
-              <li class="mx-2 flex"></li>
+              <li class="mx-2 flex">
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/apps"
+                >
+                  Sessions
+                </a>
+              </li>
+              <li class="mx-2 flex">
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/about"
+                >
+                  About
+                </a>
+              </li>
             </ul>
             <div>
               {{if .User}}
-              <a
-                class="text-gray-400 pl-5 py-2 font-medium"
-                rel="nofollow"
-                href="/logout"
-                >Logout</a
-              >
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/logout"
+                >
+                  Logout
+                </a>
+              {{else}}
+                <a
+                  class="inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-4 py-2 text-black"
+                  style="
+                    background: linear-gradient(180deg, #ffde6e 63.72%, #f8c455 95.24%);
+                  "
+                  href="/alby/auth?v202303281"
+                >
+                  <img
+                    src="/public/images/alby-head.svg"
+                    width="400"
+                    height="400"
+                    class="w-[24px] mr-2"
+                  />
+                  Log in with Alby
+                </a>
               {{end}}
             </div>
           </div>
@@ -63,5 +97,16 @@
       </a>
     </footer>
   </body>
+
+  <script type="text/javascript">
+    if (window.location.pathname.startsWith('/apps')) {
+      const link = document.querySelector('a[href="/apps"]');
+      link.classList.remove("text-gray-400")
+    }
+    if (window.location.pathname.startsWith('/about')) {
+      const link = document.querySelector('a[href="/about"]');
+      link.classList.remove("text-gray-400")
+    }
+  </script>
 </html>
 {{end}}

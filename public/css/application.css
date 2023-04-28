@@ -1210,6 +1210,11 @@ select {
   color: rgb(194 65 12 / var(--tw-text-opacity));
 }
 
+.text-orange-700 {
+  --tw-text-opacity: 1;
+  color: rgb(194 65 12 / var(--tw-text-opacity));
+}
+
 .text-purple-700 {
   --tw-text-opacity: 1;
   color: rgb(126 34 206 / var(--tw-text-opacity));
@@ -1227,6 +1232,10 @@ select {
 
 .underline {
   text-decoration-line: underline;
+}
+
+.opacity-50 {
+  opacity: 0.5;
 }
 
 .shadow {

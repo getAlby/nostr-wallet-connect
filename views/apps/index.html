@@ -7,8 +7,8 @@
     <h2 class="font-bold text-2xl font-headline py-2">Your app sessions</h2>
 
     <a
-      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-6 py-3 rounded-lg shadow text-white transition"
-      href="/apps/new"
+      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900 dark:hover:bg-surface-16dp{{end}}"
+      href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}"
     >
       <i class="fas fa-plus mr-3" aria-hidden="true"></i>
       New Session

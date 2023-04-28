@@ -96,7 +96,13 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 }
 
 func (svc *Service) AboutHandler(c echo.Context) error {
-	return c.Render(http.StatusOK, "about.html", map[string]interface{}{})
+	user, err := svc.GetUser(c)
+	if err != nil {
+		return err
+	}
+	return c.Render(http.StatusOK, "about.html", map[string]interface{}{
+		"User": user,
+	})
 }
 
 func (svc *Service) AppsListHandler(c echo.Context) error {
@@ -105,7 +111,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		return c.Redirect(302, "/")
+		return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{})
 	}
 
 	apps := user.Apps
