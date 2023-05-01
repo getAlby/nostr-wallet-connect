@@ -227,6 +227,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
 	return svc.createResponse(event, Nip47Response{
+		ResultType: NIP_47_PAY_INVOICE_METHOD,
 		Result: Nip47PayResponse{
 			Preimage: preimage,
 		},
