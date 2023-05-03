@@ -121,11 +121,12 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		return responsePayload.Preimage, nil
 	} else {
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": senderPubkey,
-			"bolt11":       payReq,
-			"appId":        app.ID,
-			"userId":       app.User.ID,
-		}).Errorf("Payment failed %v", err)
+			"senderPubkey":  senderPubkey,
+			"bolt11":        payReq,
+			"appId":         app.ID,
+			"userId":        app.User.ID,
+			"APIHttpStatus": resp.StatusCode,
+		}).Errorf("Payment failed %v", resp.Body)
 		return "", errors.New("Failed")
 	}
 }
