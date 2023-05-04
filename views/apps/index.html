@@ -4,42 +4,61 @@
   class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
 >
   <div class="mb-6 flex justify-between">
-    <h2 class="font-bold text-2xl font-headline py-3">Your connected apps</h2>
+    <h2 class="font-bold text-2xl font-headline py-2">Your app sessions</h2>
 
     <a
-      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-6 py-3 rounded-lg shadow text-white transition"
       href="/apps/new"
     >
-      + Connect new app
+      <i class="fas fa-plus mr-3" aria-hidden="true"></i>
+      New Session
     </a>
   </div>
 
   <p class="text-sm mb-4"></p>
 
-  <table
-    class="table-fixed w-full text-sm text-left text-gray-500 dark:text-gray-400"
-  >
-    <thead
-      class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400"
+  <div class="rounded-lg border border-gray-200 overflow-hidden">
+    <table
+      class="table-fixed w-full text-sm text-left"
     >
-      <tr>
-        <th scope="col" class="px-6 py-3 w-2/6">Name</th>
-        <th scope="col" class="px-6 py-3 w-1/6"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {{range .Apps}}
-      <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-        <td class="px-6 py-4">
-          <a href="/apps/{{.ID}}" class="underline">{{.Name}}</a>
-        </td>
-        <td class="px-6 py-4">
-          <a href="/apps/{{.ID}}">Details</a>
-        </td>
-      </tr>
-      {{end}}
-    </tbody>
-  </table>
+      <thead
+        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 rounded-t-lg"
+      >
+        <tr>
+          <th scope="col" class="px-6 py-3 w-2/5">Name</th>
+          <th scope="col" class="px-6 py-3 w-2/5">Last Accessed</th>
+          <th scope="col" class="px-6 py-3 w-1/5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{if not .Apps}}
+          <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
+            <td colspan="3" class="px-6 py-16 text-center text-gray-500 dark:text-gray-400">
+              No active sessions at the moment
+            </td>
+          </tr>
+        {{else}}
+        {{range .Apps}}
+        <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-purple-50" onclick="window.location='/apps/{{.ID}}'">
+          <td class="px-6 py-4">
+            {{.Name}}
+          </td>
+          <td class="px-6 py-4 text-gray-500 dark:text-gray-400">
+            {{if gt (index $.EventsCounts .ID) 0 }}
+              {{(index $.LastEvents .ID).CreatedAt.Format "02 Jan 06 15:04 MST" }}
+            {{else}}
+              NEVER
+            {{end}}
+          </td>
+          <td class="px-6 py-4 text-purple-700">
+            Details
+          </td>
+        </tr>
+        {{end}}
+        {{end}}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 {{end}}

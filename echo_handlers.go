@@ -109,9 +109,23 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 	}
 
 	apps := user.Apps
+
+	lastEvents := make(map[uint]NostrEvent)
+	eventsCounts := make(map[uint]int64)
+	for _, app := range apps {
+		var lastEvent NostrEvent
+		var eventsCount int64
+		svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
+		svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
+		lastEvents[app.ID] = lastEvent
+		eventsCounts[app.ID] = eventsCount
+	}
+
 	return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{
 		"Apps": apps,
 		"User": user,
+		"LastEvents": lastEvents,
+		"EventsCounts": eventsCounts,
 	})
 }
 
