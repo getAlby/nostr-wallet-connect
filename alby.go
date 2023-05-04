@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -105,13 +106,13 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		}).Errorf("Failed to pay invoice: %v", err)
 		return "", err
 	}
-	//todo non-200 status code handling
-	responsePayload := &PayResponse{}
-	err = json.NewDecoder(resp.Body).Decode(responsePayload)
-	if err != nil {
-		return "", err
-	}
+
 	if resp.StatusCode < 300 {
+		responsePayload := &PayResponse{}
+		err = json.NewDecoder(resp.Body).Decode(responsePayload)
+		if err != nil {
+			return "", err
+		}
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
 			"bolt11":       payReq,
@@ -120,13 +121,15 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
 	} else {
+		errorMsg, _ := ioutil.ReadAll(resp.Body)
 		svc.Logger.WithFields(logrus.Fields{
-			"senderPubkey": senderPubkey,
-			"bolt11":       payReq,
-			"appId":        app.ID,
-			"userId":       app.User.ID,
-		}).Errorf("Payment failed %v", err)
-		return "", errors.New("Failed")
+			"senderPubkey":  senderPubkey,
+			"bolt11":        payReq,
+			"appId":         app.ID,
+			"userId":        app.User.ID,
+			"APIHttpStatus": resp.StatusCode,
+		}).Errorf("Payment failed %s", string(errorMsg))
+		return "", errors.New("Payment failed")
 	}
 }
 
