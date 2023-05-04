@@ -27,9 +27,9 @@ This service allows you to control your Lightning node or wallet over Nostr.
 
 ## Installation
 
-  $ cp .env.example .env
-  # edit the config for your needs
-  vim .env
+    $ cp .env.example .env
+    # edit the config for your needs
+    vim .env
 
   To get a new random Nostr key use `openssl rand -hex 32` or similar.
 
@@ -42,7 +42,7 @@ To build the CSS run:
 `npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch`
 
 
-## /apps/new deeplink options
+## `/apps/new` deeplink options
 
 Clients can use a deeplink to allow the user to add a new connection. Depending on the client this URL has different query options:
 
