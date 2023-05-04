@@ -21,6 +21,7 @@ type AlbyMe struct {
 	Identifier       string `json:"identifier"`
 	NPub             string `json:"nostr_pubkey"`
 	LightningAddress string `json:"lightning_address"`
+	Email            string `json:"email"`
 }
 
 type User struct {
@@ -28,6 +29,7 @@ type User struct {
 	AlbyIdentifier string `gorm:"uniqueIndex" validate:"required"`
 	AccessToken    string `validate:"required"`
 	RefreshToken   string `validate:"required"`
+	Email          string
 	Expiry         time.Time
 	Apps           []App
 	CreatedAt      time.Time
