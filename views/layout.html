@@ -31,7 +31,7 @@
             Nostr Wallet Connect
           </a>
           <div class="hidden md:flex-1 md:flex items-center">
-            <ul class="flex flex-wrap mx-auto pl-10 pr-10">
+            <ul class="flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}">
               <li class="mx-2 flex">
                 <a
                   class="text-gray-400 pl-5 py-2 font-medium"
@@ -51,8 +51,8 @@
                 </a>
               </li>
             </ul>
+            {{if .User}}
             <div>
-              {{if .User}}
                 <a
                   class="text-gray-400 pl-5 py-2 font-medium"
                   rel="nofollow"
@@ -60,24 +60,8 @@
                 >
                   Logout
                 </a>
-              {{else}}
-                <a
-                  class="inline-flex cursor-pointer items-center justify-center rounded-md transition-all px-4 py-2 text-black"
-                  style="
-                    background: linear-gradient(180deg, #ffde6e 63.72%, #f8c455 95.24%);
-                  "
-                  href="/alby/auth?v202303281"
-                >
-                  <img
-                    src="/public/images/alby-head.svg"
-                    width="400"
-                    height="400"
-                    class="w-[24px] mr-2"
-                  />
-                  Log in with Alby
-                </a>
-              {{end}}
             </div>
+            {{end}}
           </div>
         </div>
       </div>
