@@ -107,6 +107,14 @@
     </button>
     </div>
   </form>
+
+  {{if .User.Email}}
+    <hr class="mt-8 mb-4">
+
+    <p class="text-sm text-gray-500 text-center">
+      You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
+    </p>
+  {{end}}
 </div>
 
 <script type="text/javascript">
