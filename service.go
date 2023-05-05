@@ -137,7 +137,6 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	if err != nil {
 		return nil, err
 	}
-	//todo: define and handle connect requests
 	payload, err := nip04.Decrypt(event.Content, ss)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -173,7 +172,6 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 			return nil, err
 		}
 		if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
-			//todo create nip 47 error response
 			return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
 				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),

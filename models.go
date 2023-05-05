@@ -81,6 +81,13 @@ type PayResponse struct {
 	Preimage    string `json:"payment_preimage"`
 	PaymentHash string `json:"payment_hash"`
 }
+
+type ErrorResponse struct {
+	Error   bool   `json:"error"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 type Identity struct {
 	gorm.Model
 	Privkey string
