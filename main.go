@@ -46,6 +46,13 @@ func main() {
 			log.Fatalf("Failed to open DB %v", err)
 		}
 	}
+	sqlDb, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed set DB config: %v", err)
+	}
+	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
+	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
+	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
 	// Migrate the schema
 	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
