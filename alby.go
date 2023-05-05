@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -121,15 +120,16 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		}).Info("Payment successful")
 		return responsePayload.Preimage, nil
 	} else {
-		errorMsg, _ := ioutil.ReadAll(resp.Body)
+		errorPayload := &ErrorResponse{}
+		err = json.NewDecoder(resp.Body).Decode(errorPayload)
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey":  senderPubkey,
 			"bolt11":        payReq,
 			"appId":         app.ID,
 			"userId":        app.User.ID,
 			"APIHttpStatus": resp.StatusCode,
-		}).Errorf("Payment failed %s", string(errorMsg))
-		return "", errors.New("Payment failed")
+		}).Errorf("Payment failed %s", string(errorPayload.Message))
+		return "", errors.New(errorPayload.Message)
 	}
 }
 
