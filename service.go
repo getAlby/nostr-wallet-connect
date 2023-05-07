@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"math"
+
+	"github.com/fiatjaf/go-lnurl"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr"
@@ -224,6 +227,36 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	nostrEvent.State = "executed"
 	svc.db.Save(&nostrEvent)
 	svc.db.Save(&payment)
+	
+	if (app.TipNWC) {
+		// TODO: this should just be done once, not for every payment
+		_, params, err := lnurl.HandleLNURL(svc.cfg.TipLightningAddress)
+		
+		if err != nil {
+			svc.Logger.Error("Failed to request LNURL")
+		} else if (params.LNURLKind() == "lnurl-pay") {
+			payParams := params.(lnurl.LNURLPayParams)
+
+			paymentSats := math.Ceil(float64(paymentRequest.MSatoshi) / 1000)
+			tipSats := math.Ceil(paymentSats / 100)
+			
+			payValues, err := payParams.Call(int64(tipSats * 1000), "1% Tip", nil)
+			if err != nil {
+				svc.Logger.Error("Failed to request tip invoice")
+			} else {
+				preimage, err := svc.lnClient.SendPaymentSync(ctx, event.PubKey, payValues.PR)
+				if err != nil {
+					svc.Logger.Error("Failed to send tip", err)
+				} else {
+					svc.Logger.Info("Sent tip: ", preimage)
+				}
+			}
+		} else {
+			svc.Logger.Error("Unexpected LNURL kind")
+		}
+	}
+
+
 	return svc.createResponse(event, Nip47Response{
 		ResultType: NIP_47_PAY_INVOICE_METHOD,
 		Result: Nip47PayResponse{
