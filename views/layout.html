@@ -31,19 +31,37 @@
             Nostr Wallet Connect
           </a>
           <div class="hidden md:flex-1 md:flex items-center">
-            <ul class="flex flex-wrap mx-auto pl-10 pr-10">
-              <li class="mx-2 flex"></li>
+            <ul class="flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}">
+              <li class="mx-2 flex">
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/apps"
+                >
+                  Sessions
+                </a>
+              </li>
+              <li class="mx-2 flex">
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/about"
+                >
+                  About
+                </a>
+              </li>
             </ul>
+            {{if .User}}
             <div>
-              {{if .User}}
-              <a
-                class="text-gray-400 pl-5 py-2 font-medium"
-                rel="nofollow"
-                href="/logout"
-                >Logout</a
-              >
-              {{end}}
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/logout"
+                >
+                  Logout
+                </a>
             </div>
+            {{end}}
           </div>
         </div>
       </div>
@@ -63,5 +81,16 @@
       </a>
     </footer>
   </body>
+
+  <script type="text/javascript">
+    if (window.location.pathname.startsWith('/apps')) {
+      const link = document.querySelector('a[href="/apps"]');
+      link.classList.remove("text-gray-400")
+    }
+    if (window.location.pathname.startsWith('/about')) {
+      const link = document.querySelector('a[href="/about"]');
+      link.classList.remove("text-gray-400")
+    }
+  </script>
 </html>
 {{end}}
