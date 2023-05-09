@@ -45,6 +45,7 @@ func NewAlbyOauthService(svc *Service, e *echo.Echo) (result *AlbyOAuthService, 
 
 	e.GET("/alby/auth", albySvc.AuthHandler)
 	e.GET("/alby/callback", albySvc.CallbackHandler)
+	e.POST("/alby/admin/balance_event", svc.BalanceHandler)
 
 	return albySvc, err
 }
