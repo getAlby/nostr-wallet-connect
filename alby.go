@@ -173,6 +173,7 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	user.RefreshToken = tok.RefreshToken
 	user.Expiry = tok.Expiry // TODO; probably needs some calculation
 	user.Email = me.Email
+	user.LightningAddress = me.LightningAddress
 	svc.db.Save(&user)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
