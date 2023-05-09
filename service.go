@@ -298,7 +298,6 @@ func (svc *Service) PublishBalanceEvent(ctx context.Context, app App, balance in
 		Tags:      nostr.Tags{[]string{"p", app.NostrPubkey}},
 		Content:   msg,
 	}
-	fmt.Println(app.NostrPubkey)
 	err = ev.Sign(svc.cfg.NostrSecretKey)
 	if err != nil {
 		return err
