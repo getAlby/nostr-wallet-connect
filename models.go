@@ -25,15 +25,16 @@ type AlbyMe struct {
 }
 
 type User struct {
-	ID             uint   `gorm:"primaryKey"`
-	AlbyIdentifier string `gorm:"uniqueIndex" validate:"required"`
-	AccessToken    string `validate:"required"`
-	RefreshToken   string `validate:"required"`
-	Email          string
-	Expiry         time.Time
-	Apps           []App
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID               uint   `gorm:"primaryKey"`
+	AlbyIdentifier   string `gorm:"uniqueIndex" validate:"required"`
+	AccessToken      string `validate:"required"`
+	RefreshToken     string `validate:"required"`
+	Email            string
+	Expiry           time.Time
+	LightningAddress string
+	Apps             []App
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type App struct {
