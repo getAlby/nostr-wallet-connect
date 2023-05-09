@@ -91,15 +91,14 @@
 <script type="text/javascript">
   // notify the opener if present of the success full connect
   window.addEventListener("load", (event) => {
-    document.location = "{{.PairingUri}}";
-
+    
     // if there is no opener we redirect to the protocol link
     // this fails if the user does not support it and the user sees the normal
     if (!window.opener) {
       // delay execution a bit to make sure the page can finish loading
       setTimeout(function () {
         document.location = "{{.PairingUri}}";
-      }, 200);
+      }, 250);
       return;
     }
     window.opener.postMessage(
