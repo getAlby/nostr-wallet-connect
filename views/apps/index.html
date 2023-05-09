@@ -10,7 +10,12 @@
       class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900 dark:hover:bg-surface-16dp{{end}}"
       href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}"
     >
-      <i class="fas fa-plus mr-3" aria-hidden="true"></i>
+      <img
+        src="public/images/plus.svg"
+        width="24"
+        height="24"
+        class="mr-2 text-white"
+      />
       New Session
     </a>
   </div>
