@@ -216,7 +216,11 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		if c.FormValue("returnTo") != "" {
 			return c.Redirect(302, c.FormValue("returnTo"))
 		}
-		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s&lud16=%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, user.LightningAddress))
+		var lud16 string
+		if user.LightningAddress != "" {
+			lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
+		}
+		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
 		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 			"User":          user,
 			"PairingUri":    pairingUri,
