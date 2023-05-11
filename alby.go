@@ -68,11 +68,13 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		"userId":       app.User.ID,
 	}).Info("Processing payment request")
 	user := app.User
+	svc.Logger.WithField("user", user).Info("user")
 	tok, err := svc.oauthConf.TokenSource(ctx, &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.Expiry,
 	}).Token()
+	svc.Logger.WithField("user", tok).Info("tok")
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
@@ -87,7 +89,11 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 	user.AccessToken = tok.AccessToken
 	user.RefreshToken = tok.RefreshToken
 	user.Expiry = tok.Expiry // TODO; probably needs some calculation
-	svc.db.Save(&user)
+	err = svc.db.Save(&user).Error
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error saving user")
+		return "", err
+	}
 	client := svc.oauthConf.Client(ctx, tok)
 
 	body := bytes.NewBuffer([]byte{})
