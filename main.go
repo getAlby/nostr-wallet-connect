@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
+	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
-	"github.com/getAlby/lndhub.go/lnd"
+	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/labstack/echo/v4"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
 	log "github.com/sirupsen/logrus"
@@ -28,6 +32,57 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading environment variables: %v", err)
 	}
+
+	var db *gorm.DB
+	if strings.HasPrefix(cfg.DatabaseUri, "postgres://") || strings.HasPrefix(cfg.DatabaseUri, "postgresql://") || strings.HasPrefix(cfg.DatabaseUri, "unix://") {
+		db, err = gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to open DB %v", err)
+		}
+
+	} else {
+		db, err = gorm.Open(sqlite.Open(cfg.DatabaseUri), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("Failed to open DB %v", err)
+		}
+	}
+	sqlDb, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed set DB config: %v", err)
+	}
+	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
+	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
+	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
+
+	// Migrate the schema
+	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
+	if err != nil {
+		log.Fatalf("Failed migrate DB %v", err)
+	}
+
+	if cfg.NostrSecretKey == "" {
+		if cfg.LNBackendType == AlbyBackendType {
+			//not allowed
+			log.Fatal("Nostr private key is required with this backend type.")
+		}
+		//first look up if we already have the private key in the database
+		//else, generate and store private key
+		identity := &Identity{}
+		err = db.FirstOrInit(identity).Error
+		if err != nil {
+			log.WithError(err).Fatal("Error retrieving private key from database")
+		}
+		if identity.Privkey == "" {
+			log.Info("No private key found in database, generating & saving.")
+			identity.Privkey = nostr.GeneratePrivateKey()
+			err = db.Save(identity).Error
+			if err != nil {
+				log.WithError(err).Fatal("Error saving private key to database")
+			}
+		}
+		cfg.NostrSecretKey = identity.Privkey
+	}
+
 	identityPubkey, err := nostr.GetPublicKey(cfg.NostrSecretKey)
 	if err != nil {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
@@ -38,82 +93,93 @@ func main() {
 		log.Fatalf("Error converting nostr privkey to pubkey: %v", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(cfg.DatabaseUri), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("Failed to open DB %v", err)
-	}
-	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{})
-	if err != nil {
-		log.Fatalf("Failed migrate DB %v", err)
-	}
-
-	log.Infof("Starting nostr-wallet-connect. My npub is %s", npub)
-	svc := Service{
+	log.Infof("Starting nostr-wallet-connect. npub: %s hex: %s", npub, identityPubkey)
+	svc := &Service{
 		cfg: cfg,
 		db:  db,
 	}
 
-	tracer.Start(tracer.WithService("nostr-wallet-connect"))
-	defer tracer.Stop()
+	if os.Getenv("DATADOG_AGENT_URL") != "" {
+		tracer.Start(tracer.WithService("nostr-wallet-connect"))
+		defer tracer.Stop()
+	}
 
 	echologrus.Logger = log.New()
 	echologrus.Logger.SetFormatter(&log.JSONFormatter{})
 	echologrus.Logger.SetOutput(os.Stdout)
 	echologrus.Logger.SetLevel(log.InfoLevel)
-	svc.Logger = *echologrus.Logger
+	svc.Logger = echologrus.Logger
 
+	e := echo.New()
 	ctx := context.Background()
 	ctx, _ = signal.NotifyContext(ctx, os.Interrupt)
 	var wg sync.WaitGroup
 	switch cfg.LNBackendType {
 	case LNDBackendType:
-		lndClient, err := lnd.NewLNDclient(lnd.LNDoptions{
-			Address:      cfg.LNDAddress,
-			CertFile:     cfg.LNDCertFile,
-			MacaroonFile: cfg.LNDMacaroonFile,
-		})
+		lndClient, err := NewLNDService(ctx, svc, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		info, err := lndClient.GetInfo(ctx, &lnrpc.GetInfoRequest{})
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
-		svc.Logger.Infof("Connected to LND - alias %s", info.Alias)
-		svc.lnClient = &LNDWrapper{lndClient}
+		svc.lnClient = lndClient
 	case AlbyBackendType:
-		oauthService, err := NewAlbyOauthService(&svc)
+		oauthService, err := NewAlbyOauthService(svc, e)
 		if err != nil {
 			svc.Logger.Fatal(err)
 		}
-		wg.Add(1)
-		go func() {
-			oauthService.Start(ctx)
-			svc.Logger.Info("OAuth server exited")
-			wg.Done()
-		}()
 		svc.lnClient = oauthService
+	}
+
+	//register shared routes
+	svc.RegisterSharedRoutes(e)
+	//start Echo server
+	wg.Add(1)
+	go func() {
+		if err := e.Start(fmt.Sprintf(":%v", svc.cfg.Port)); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("shutting down the server")
+		}
+		//handle graceful shutdown
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		e.Shutdown(ctx)
+		svc.Logger.Info("Echo server exited")
+		wg.Done()
+	}()
+
+	//connect to the relay
+	svc.Logger.Infof("Connecting to the relay: %s", cfg.Relay)
+	relay, err := nostr.RelayConnect(ctx, cfg.Relay)
+	if err != nil {
+		svc.Logger.Fatal(err)
+	}
+
+	//publish event with NIP-47 info
+	err = svc.PublishNip47Info(ctx, relay)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Could not publish NIP47 info")
 	}
 
 	//Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	//TODO: we can start this loop for multiple relays
 	for {
-		svc.Logger.Info("Connecting to the relay")
-		relay, err := nostr.RelayConnect(ctx, cfg.Relay)
-		if err != nil {
-			svc.Logger.Fatal(err)
-		}
 		svc.Logger.Info("Subscribing to events")
 		sub := relay.Subscribe(ctx, svc.createFilters())
 		err = svc.StartSubscription(ctx, sub)
 		if err != nil {
 			//err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
 			svc.Logger.WithError(err).Error("Got an error from the relay. Reconnecting...")
+			relay, err = nostr.RelayConnect(ctx, cfg.Relay)
+			if err != nil {
+				svc.Logger.Fatal(err)
+			}
 			continue
 		}
 		//err being nil means that the context was canceled and we should exit the program.
 		break
+	}
+	err = relay.Close()
+	if err != nil {
+		svc.Logger.Error(err)
 	}
 	svc.Logger.Info("Graceful shutdown completed. Goodbye.")
 }
