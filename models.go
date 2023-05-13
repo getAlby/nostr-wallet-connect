@@ -13,6 +13,8 @@ const (
 	NIP_47_PAY_INVOICE_METHOD    = "pay_invoice"
 	NIP_47_ERROR_INTERNAL        = "INTERNAL"
 	NIP_47_ERROR_NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
+	NIP_47_ERROR_QUOTA_EXCEEDED    = "QUOTA_EXCEEDED"
+	NIP_47_ERROR_INSUFFICIENT_BALANCE    = "INSUFFICIENT_BALANCE"
 	NIP_47_ERROR_UNAUTHORIZED    = "UNAUTHORIZED"
 	NIP_47_CAPABILITIES          = "pay_invoice"
 )
@@ -58,7 +60,7 @@ type AppPermission struct {
 	App                    App  `gorm:"constraint:OnDelete:CASCADE"`
 	NostrKind              int  `gorm:"index" validate:"required"`
 	MaxAmount              int
-	MaxAmoutPerTransaction int
+	MaxAmountPerTransaction int
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }

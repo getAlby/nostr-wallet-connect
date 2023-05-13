@@ -29,26 +29,16 @@
       <span class="mr-3 absolute left-0">&#9989;</span>
       Send payments from your wallet
     </li>
-  </ul>
-
-  <hr class="mb-4 mt-4">
-
-<h3 class="text-xl font-headline mb-2">Permissions</h3>
-
-<ul>
-  <li class="mb-2 relative pl-6">
-    <i class="fas fa-check mr-3 text-green-700 absolute left-0 top-1" aria-hidden="true"></i>
-    Send payments from your account.
     {{ if eq .AppPermission.MaxAmount 0 }}
     {{ else }}
     <p>
       monthly Budget: {{.AppPermission.MaxAmount}}
     </p>
     {{end}}
-    {{ if eq .AppPermission.MaxAmoutPerTransaction 0 }}
+    {{ if eq .AppPermission.MaxAmountPerTransaction 0 }}
     {{ else }}
     <p>
-      maximum transaction amount: {{.AppPermission.MaxAmoutPerTransaction}}
+      maximum transaction amount: {{.AppPermission.MaxAmountPerTransaction}}
     </p>
     {{end}}
   </li>

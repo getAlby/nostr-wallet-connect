@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"strconv"
 	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -150,8 +151,12 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
+
+	appPermission := AppPermission{}
+	svc.db.Where("app_id = ? AND nostr_kind = ?", app.ID, NIP_47_REQUEST_KIND).First(&appPermission)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":         app,
+		"AppPermission": appPermission,
 		"User":        user,
 		"LastEvent":   lastEvent,
 		"EventsCount": eventsCount,
@@ -210,31 +215,49 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return c.Redirect(302, "/apps")
 		}
 	}
-
-	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
-	if err == nil {
-		if c.FormValue("returnTo") != "" {
-			return c.Redirect(302, c.FormValue("returnTo"))
-		}
-		var lud16 string
-		if user.LightningAddress != "" {
-			lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
-		}
-		pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
-		return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
-			"User":          user,
-			"PairingUri":    pairingUri,
-			"PairingSecret": pairingSecretKey,
-			"Pubkey":        pairingPublicKey,
-			"Name":          name,
-		})
-	} else {
+	app := App{Name: name, NostrPubkey: pairingPublicKey}
+	err = svc.db.Model(&user).Association("Apps").Append(&app)
+	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
-		}).Errorf("Failed to save app: %v", err)
+			}).Errorf("Failed to save app: %v", err)
 		return c.Redirect(302, "/apps")
 	}
+	
+	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
+	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
+
+	appPermission := AppPermission{
+		App:                     app,
+		NostrKind:               NIP_47_REQUEST_KIND,
+		MaxAmountPerTransaction: maxAmountPerTransaction,
+		MaxAmount:               maxAmount,
+	}
+	err = svc.db.Create(&appPermission).Error
+	if err != nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"pairingPublicKey": pairingPublicKey,
+			"name":             name,
+		}).Errorf("Failed to save app permission: %v", err)
+		return c.Redirect(http.StatusMovedPermanently, "/apps")
+	}
+
+	if c.FormValue("returnTo") != "" {
+		return c.Redirect(302, c.FormValue("returnTo"))
+	}
+	var lud16 string
+	if user.LightningAddress != "" {
+		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
+	}
+	pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
+	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
+		"User":          user,
+		"PairingUri":    pairingUri,
+		"PairingSecret": pairingSecretKey,
+		"Pubkey":        pairingPublicKey,
+		"Name":          name,
+	})
 }
 
 func (svc *Service) AppsDeleteHandler(c echo.Context) error {

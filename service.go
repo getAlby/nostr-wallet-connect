@@ -192,7 +192,22 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	}
 
 	if !svc.hasPermission(&app, event, &paymentRequest) {
-		return svc.createResponse(NIP_47_ERROR_RESPONSE_KIND, event, "no permission", ss)
+		if err != nil {
+			ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
+			if err != nil {
+				return nil, err
+			}
+			// FIXME: svc.hasPermission needs to return an error type and message
+			resp, _ := svc.createResponse(event, Nip47Response{
+				Error: &Nip47Error{
+					Code:    NIP_47_ERROR_QUOTA_EXCEEDED,
+					Message: "No permission",
+				},
+			}, ss)
+			return resp, err
+		}
+
+		return nil, err
 	}
 
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
@@ -262,7 +277,7 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 
 func (svc *Service) hasPermission(app *App, event *nostr.Event, paymentRequest *decodepay.Bolt11) bool {
 	appPermission := AppPermission{}
-	findPermissionResult := svc.db.Find(&appPermission, &AppPermission{
+	findPermissionResult := svc.db.Limit(1).Find(&appPermission, &AppPermission{
 		AppId:     app.ID,
 		NostrKind: event.Kind,
 	})
@@ -274,12 +289,14 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, paymentRequest *
 		var result SumResult
 		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, time.Now().AddDate(0, -1, 0)).Scan(&result)
 		if int64(result.Sum)+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
+			svc.Logger.Info("Out of balance")
 			return false
 		}
 	}
-	maxAmoutPerTransaction := appPermission.MaxAmoutPerTransaction
-	if maxAmoutPerTransaction != 0 {
-		if paymentRequest.MSatoshi/1000 > int64(maxAmoutPerTransaction) {
+	MaxAmountPerTransaction := appPermission.MaxAmountPerTransaction
+	if MaxAmountPerTransaction != 0 {
+		if paymentRequest.MSatoshi/1000 > int64(MaxAmountPerTransaction) {
+			svc.Logger.Info("trying to send more than max amount per transaction in budget")
 			return false
 		}
 	}
