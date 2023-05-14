@@ -167,6 +167,9 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	pubkey := c.QueryParam("pubkey")
 	returnTo := c.QueryParam("return_to")
+	maxAmount := c.QueryParam("max_amount")
+	maxAmountPerTransaction := c.QueryParam("max_amount_per_transaction")
+	
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -188,6 +191,8 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"Name":     appName,
 		"Pubkey":   pubkey,
 		"ReturnTo": returnTo,
+		"MaxAmount": maxAmount,
+		"MaxAmountPerTransaction": maxAmountPerTransaction,
 	})
 }
 

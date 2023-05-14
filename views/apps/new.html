@@ -35,18 +35,19 @@
     </div>
 
     <p class="text-gray-500 dark:text-gray-400">
-      <input type="checkbox" name="budget" id="budget" class="text-gray-500 dark:text-gray-400"
+      <input type="checkbox" name="budget" id="budget" {{if .MaxAmount}}checked{{end}} class="text-gray-500 dark:text-gray-400"
         onclick="document.getElementById('budgetOptions').classList.toggle('hidden');">
       Set a budget
     </p>
-    <div id="budgetOptions" class="hidden my-4">
+    <div id="budgetOptions" class="{{if not .MaxAmount}}hidden{{end}} my-4">
       <div class="mt-2">
         <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
           Monthly amount in sats
         </label>
         <input type="text" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          pattern="{0-9}.*">
+          pattern="{0-9}.*"
+          value={{.MaxAmount}}>
       </div>
       <div class="mt-2">
         <label for="MaxAmountPerTransaction" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -55,7 +56,8 @@
         <input type="text" name="MaxAmountPerTransaction" id="MaxAmountPerTransaction"
           aria-describedby="helper-text-explanation"
           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          pattern="{0-9}.*">
+          pattern="{0-9}.*"
+          value={{.MaxAmountPerTransaction}}>
       </div>
     </div>
 
