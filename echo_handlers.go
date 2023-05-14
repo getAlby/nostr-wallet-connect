@@ -20,6 +20,7 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	ddEcho "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
+	"gorm.io/gorm"
 )
 
 //go:embed public/*
@@ -221,15 +222,6 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 	}
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	err = svc.db.Model(&user).Association("Apps").Append(&app)
-	if err != nil {
-		svc.Logger.WithFields(logrus.Fields{
-			"pairingPublicKey": pairingPublicKey,
-			"name":             name,
-			}).Errorf("Failed to save app: %v", err)
-		return c.Redirect(302, "/apps")
-	}
-	
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
 
@@ -239,13 +231,28 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		MaxAmountPerTransaction: maxAmountPerTransaction,
 		MaxAmount:               maxAmount,
 	}
-	err = svc.db.Create(&appPermission).Error
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		err = tx.Model(&user).Association("Apps").Append(&app)
+		if err != nil {
+			return err
+		}
+
+		err = tx.Create(&appPermission).Error
+		if err != nil {
+			return err
+		}
+	
+		// commit transaction
+		return nil
+	})
+
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
-		}).Errorf("Failed to save app permission: %v", err)
-		return c.Redirect(http.StatusMovedPermanently, "/apps")
+			}).Errorf("Failed to save app: %v", err)
+		return c.Redirect(302, "/apps")
 	}
 
 	if c.FormValue("returnTo") != "" {
