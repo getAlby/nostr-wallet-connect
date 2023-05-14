@@ -16,6 +16,7 @@ const (
 	NIP_47_ERROR_QUOTA_EXCEEDED    = "QUOTA_EXCEEDED"
 	NIP_47_ERROR_INSUFFICIENT_BALANCE    = "INSUFFICIENT_BALANCE"
 	NIP_47_ERROR_UNAUTHORIZED    = "UNAUTHORIZED"
+	NIP_47_ERROR_RESTRICTED    = "RESTRICTED"
 	NIP_47_CAPABILITIES          = "pay_invoice"
 )
 
@@ -55,14 +56,14 @@ type SumResult struct {
 }
 
 type AppPermission struct {
-	ID                     uint `gorm:"primaryKey"`
-	AppId                  uint `gorm:"index" validate:"required"`
-	App                    App  `gorm:"constraint:OnDelete:CASCADE"`
-	NostrKind              int  `gorm:"index" validate:"required"`
-	MaxAmount              int
+	ID                      uint `gorm:"primaryKey"`
+	AppId                   uint `gorm:"index" validate:"required"`
+	App                     App  `gorm:"constraint:OnDelete:CASCADE"`
+	RequestMethod           string  `gorm:"index" validate:"required"`
+	MaxAmount               int
 	MaxAmountPerTransaction int
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
 }
 
 type NostrEvent struct {

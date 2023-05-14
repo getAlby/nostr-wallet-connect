@@ -154,7 +154,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
 	appPermission := AppPermission{}
-	svc.db.Where("app_id = ? AND nostr_kind = ?", app.ID, NIP_47_REQUEST_KIND).First(&appPermission)
+	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":         app,
 		"AppPermission": appPermission,
@@ -225,17 +225,17 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
 
-	appPermission := AppPermission{
-		App:                     app,
-		NostrKind:               NIP_47_REQUEST_KIND,
-		MaxAmountPerTransaction: maxAmountPerTransaction,
-		MaxAmount:               maxAmount,
-	}
-
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Model(&user).Association("Apps").Append(&app)
 		if err != nil {
 			return err
+		}
+
+		appPermission := AppPermission{
+			App:                     app,
+			RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
+			MaxAmountPerTransaction: maxAmountPerTransaction,
+			MaxAmount:               maxAmount,
 		}
 
 		err = tx.Create(&appPermission).Error
