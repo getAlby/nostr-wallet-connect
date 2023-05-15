@@ -197,7 +197,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"ReturnTo": returnTo,
 		"MaxAmount": maxAmount,
 		"MaxAmountPerTransaction": maxAmountPerTransaction,
-		"BugdetType": budgetType,
+		"BudgetType": budgetType,
 		"ExpiresAt": expiresAt,
 	})
 }
