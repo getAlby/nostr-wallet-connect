@@ -17,45 +17,98 @@
   </ul>
 
   <form method="POST" action="/apps" accept-charset="UTF-8">
-    <div class="mb-10">
+    <div class="mb-4">
       <label
         for="name"
         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
         >App name</label
       >
       <input
-        type="name"
+        type="text"
         name="name"
         value="{{.Name}}"
         id="name"
         required
         autocomplete="off"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
       />
     </div>
-
-    <p class="text-gray-500 dark:text-gray-400">
-      <input type="checkbox" name="budget" id="budget" {{if .MaxAmount}}checked{{end}} class="text-gray-500 dark:text-gray-400"
-        onclick="document.getElementById('budgetOptions').classList.toggle('hidden');">
-      Set a budget
+    <p class="text-gray-500 dark:text-gray-400 mb-4">
+      <input {{if .ExpiresAt}}checked{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        onclick="document.getElementById('expiryOption').classList.toggle('hidden');" >
+      <label for="ExpiryCheckbox" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Set an Expiry</label>
     </p>
-    <div id="budgetOptions" class="{{if not .MaxAmount}}hidden{{end}} my-4">
+    <div id="expiryOption" class="{{if not .ExpiresAt}}hidden{{end}} my-4">
+      <div class="mb-4">
+        <label
+          for="ExpiresAt"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >Expiry</label
+        >
+        <input
+          type="date"
+          name="ExpiresAt"
+          value="{{.ExpiresAt}}"
+          id="ExpiresAt"
+          autocomplete="off"
+          min=""
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+        />
+      </div>
+    </div>
+
+    <p class="text-gray-500 dark:text-gray-400 mb-4">
+      <input {{if .MaxAmount}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        onclick="document.getElementById('budgetOptions').classList.toggle('hidden');" >
+      <label for="BudgetCheckbox" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
+    </p>
+
+    <div id="budgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4 mb-6">
+      <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        Budget Renewal
+      </p>
+      <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
+          <div class="flex items-center pl-3">
+            <input checked id="BudgetTypeNever" type="radio" value="never" name="BudgetType" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+            <label for="BudgetTypeNever" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Never</label>
+          </div>
+        </li>
+        <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
+          <div class="flex items-center pl-3">
+            <input id="BudgetTypeDaily" type="radio" value="daily" name="BudgetType" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+            <label for="BudgetTypeDaily" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Daily</label>
+          </div>
+        </li>
+        <li class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600">
+          <div class="flex items-center pl-3">
+            <input id="BudgetTypeWeekly" type="radio" value="weekly" name="BudgetType" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+            <label for="BudgetTypeWeekly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Weekly</label>
+          </div>
+        </li>
+        <li class="w-full dark:border-gray-600">
+          <div class="flex items-center pl-3">
+            <input id="BudgetTypeMonthly" type="radio" value="monthly" name="BudgetType" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+            <label for="BudgetTypeMonthly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Monthly</label>
+          </div>
+        </li>
+      </ul>
       <div class="mt-2">
         <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Monthly amount in sats
+          Monthly Amount (in sats)
         </label>
         <input type="text" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
           pattern="{0-9}.*"
           value={{.MaxAmount}}>
       </div>
       <div class="mt-2">
         <label for="MaxAmountPerTransaction" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-          Max amount per transaction
+          Max Amount (per transaction)
         </label>
         <input type="text" name="MaxAmountPerTransaction" id="MaxAmountPerTransaction"
           aria-describedby="helper-text-explanation"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
           pattern="{0-9}.*"
           value={{.MaxAmountPerTransaction}}>
       </div>
@@ -87,4 +140,8 @@
   {{end}}
 </div>
 
+<script type="text/javascript">
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById("ExpiresAt").min = today;
+</script>
 {{end}}
