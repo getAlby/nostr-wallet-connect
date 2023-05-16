@@ -171,7 +171,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
 	maxAmountPerTransaction := c.QueryParam("max_amount_per_transaction")
-	budgetType := c.QueryParam("budget_type")
+	budgetRenewal := c.QueryParam("budget_renewal")
 	expiresAt := c.QueryParam("expires_at")
 	
 	user, err := svc.GetUser(c)
@@ -197,7 +197,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"ReturnTo": returnTo,
 		"MaxAmount": maxAmount,
 		"MaxAmountPerTransaction": maxAmountPerTransaction,
-		"BudgetType": budgetType,
+		"BudgetRenewal": budgetRenewal,
 		"ExpiresAt": expiresAt,
 	})
 }
@@ -229,7 +229,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
-	budgetType := c.FormValue("BudgetType")
+	budgetRenewal := c.FormValue("BudgetRenewal")
 	date, _ := time.Parse("2021-01-21", c.FormValue("ExpiresAt"))
 	expiresAt := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
 
@@ -244,7 +244,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
 			MaxAmountPerTransaction: maxAmountPerTransaction,
 			MaxAmount:               maxAmount,
-			BudgetType:              budgetType,
+			BudgetRenewal:           budgetRenewal,
 			ExpiresAt:               expiresAt,
 		}
 

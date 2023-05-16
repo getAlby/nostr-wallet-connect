@@ -63,7 +63,7 @@ type AppPermission struct {
 	RequestMethod           string  `gorm:"index" validate:"required"`
 	MaxAmount               int
 	MaxAmountPerTransaction int
-	BudgetType              string
+	BudgetRenewal           string
 	ExpiresAt               time.Time
 	CreatedAt               time.Time
 	UpdatedAt               time.Time

@@ -29,10 +29,10 @@
       <span class="mr-3 absolute left-0">&#9989;</span>
       Send payments from your wallet
     </li>
-    {{ if eq .AppPermission.BudgetType "" }}
+    {{ if eq .AppPermission.BudgetRenewal "" }}
     {{ else }}
     <p>
-      Budget Renewal: {{.AppPermission.BudgetType}}
+      Budget Renewal: {{.AppPermission.BudgetRenewal}}
     </p>
     {{end}}
     {{ if eq .AppPermission.MaxAmount 0 }}

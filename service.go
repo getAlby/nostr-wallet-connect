@@ -330,11 +330,11 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 			return false, NIP_47_ERROR_INSUFFICIENT_BALANCE, "Payment amount is greater than budget allows"
 		}
 	}
-	budgetType := appPermission.BudgetType
+	budgetRenewal := appPermission.BudgetRenewal
 	maxAmount := appPermission.MaxAmount
 	if maxAmount != 0 {
 		var result SumResult
-		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, GetStartOfBudget(budgetType, app.CreatedAt)).Scan(&result)
+		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, GetStartOfBudget(budgetRenewal, app.CreatedAt)).Scan(&result)
 		if int64(result.Sum)+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
 			return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 		}
