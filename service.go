@@ -274,10 +274,11 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 	return resp, nil
 }
 
-func GetStartOfBudget(budget_type string) time.Time {
+func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
 	now := time.Now()
 	switch budget_type {
 	case "daily":
+		// TODO: Use the location of the user, instead of the server
 		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	case "weekly":
 		weekday := now.Weekday()
@@ -292,8 +293,8 @@ func GetStartOfBudget(budget_type string) time.Time {
 		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	case "yearly":
 		return time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
-	default:
-		return time.Time{}
+	default: //"never"
+		return createdAt
 	}
 }
 
@@ -333,11 +334,7 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 	maxAmount := appPermission.MaxAmount
 	if maxAmount != 0 {
 		var result SumResult
-		if budgetType == "never" {
-			svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL", app.ID).Scan(&result)
-		} else {
-			svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, GetStartOfBudget(budgetType)).Scan(&result)
-		}
+		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, GetStartOfBudget(budgetType, app.CreatedAt)).Scan(&result)
 		if int64(result.Sum)+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
 			return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 		}

@@ -230,7 +230,8 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
 	budgetType := c.FormValue("BudgetType")
-	expiresAt, _ := time.Parse("2021-01-21", c.FormValue("ExpiresAt"))
+	date, _ := time.Parse("2021-01-21", c.FormValue("ExpiresAt"))
+	expiresAt := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, date.Location())
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Model(&user).Association("Apps").Append(&app)
