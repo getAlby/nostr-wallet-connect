@@ -111,7 +111,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		return c.Render(http.StatusOK, "apps/index.html", map[string]interface{}{})
+		return c.Redirect(302, "/")
 	}
 
 	apps := user.Apps
