@@ -50,8 +50,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
-	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
-	templates["apps/new_with_pubkey.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new_with_pubkey.html", "views/layout.html"))
+	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))	
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
@@ -184,13 +183,8 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
-	var template string
-	if pubkey != "" {
-		template = "apps/new_with_pubkey.html"
-	} else {
-		template = "apps/new.html"
-	}
-	return c.Render(http.StatusOK, template, map[string]interface{}{
+	
+	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
 		"User":     user,
 		"Name":     appName,
 		"Pubkey":   pubkey,

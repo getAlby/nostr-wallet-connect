@@ -4,10 +4,14 @@
   class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
 >
   <h2 class="font-bold text-2xl font-headline mb-4">
-    Create a new app connection
+    {{if .Name}}
+      Connect to {{.Name}}
+    {{else}}
+      Create a new app connection
+    {{end}}
   </h2>
 
-  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize the new app to:</p>
+  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
 
   <ul class="mb-6">
     <li class="flex items-center mb-2 relative pl-6 text-sm text-gray-500 dark:text-gray-400">
@@ -17,28 +21,40 @@
   </ul>
 
   <form method="POST" action="/apps" accept-charset="UTF-8">
-    <div class="mb-4">
-      <label
-        for="name"
-        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-        >Connection name</label
-      >
-      <input
-        type="text"
-        name="name"
-        value="{{.Name}}"
-        id="name"
-        required
-        autocomplete="off"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
-      />
-    </div>
+    <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
+    <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
+    {{if eq .Name "" }}
+      <div class="mb-4">
+        <label
+          for="name"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >Connection name</label
+        >
+        <input
+          type="text"
+          name="name"
+          value="{{.Name}}"
+          id="name"
+          required
+          autocomplete="off"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+        />
+        <p
+          class="mb-6 text-sm text-gray-500 dark:text-gray-400"
+        >
+          Give your connection a name to easily identify it.
+        </p>
+      </div>
+    {{ else }}
+      <input type="hidden" name="name" value="{{.Name}}" id="name" />
+    {{end}}
+
     <p class="text-gray-500 dark:text-gray-400 mb-1">
       <input {{if .ExpiresAt}}checked{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         onclick="document.getElementById('expiryOption').classList.toggle('hidden');" >
       <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
     </p>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the exipry date.</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the expiry date.</p>
     <div id="expiryOption" class="{{if not .ExpiresAt}}hidden{{end}} my-4">
       <div class="mb-6">
         <label
@@ -124,19 +140,27 @@
       </div>
     </div>
 
+    {{ if .Pubkey }}
+      <p class="text-orange-700 bg-orange-50 p-3 mb-6">
+        ⚠️ Only connect with apps you trust!
+      </p>
+    {{ end }}
+
     <div class="flex flex-col sm:flex-row sm:justify-center">
+      {{ if not .Pubkey }}
       <a
         href="/apps"
         class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
       >
         Cancel
       </a>
+      {{ end }}
 
       <button
         type="submit"
         class="inline-flex w-full sm:w-[250px] bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
       >
-        Confirm
+      {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
       </button>
     </div>
   </form>
