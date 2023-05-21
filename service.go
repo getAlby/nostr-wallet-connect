@@ -298,6 +298,22 @@ func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
 	}
 }
 
+func GetEndOfBudget(budget_type string, createdAt time.Time) time.Time {
+	start := GetStartOfBudget(budget_type, createdAt)
+	switch budget_type {
+	case "daily":
+		return start.AddDate(0, 0, 1)
+	case "weekly":
+		return start.AddDate(0, 0, 7)
+	case "monthly":
+		return start.AddDate(0, 1, 0)
+	case "yearly":
+		return start.AddDate(1, 0, 0)
+	default: //"never"
+		return start.AddDate(9999, 0, 0)
+	}
+}
+
 func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, paymentRequest *decodepay.Bolt11) (result bool, code string, message string) {
 	// find all permissions for the app
 	appPermissions := []AppPermission{}
@@ -330,16 +346,22 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 			return false, NIP_47_ERROR_INSUFFICIENT_BALANCE, "Payment amount is greater than budget allows"
 		}
 	}
-	budgetRenewal := appPermission.BudgetRenewal
+	
 	maxAmount := appPermission.MaxAmount
 	if maxAmount != 0 {
-		var result SumResult
-		svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", app.ID, GetStartOfBudget(budgetRenewal, app.CreatedAt)).Scan(&result)
-		if int64(result.Sum)+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
+		budgetUsage := svc.GetBudgetUsage(&appPermission)
+		
+		if budgetUsage +paymentRequest.MSatoshi/1000 > int64(maxAmount) {
 			return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 		}
 	}
 	return true, "", ""
+}
+
+func (svc *Service) GetBudgetUsage(appPermission *AppPermission) int64 {
+	var result SumResult
+	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", appPermission.AppId, GetStartOfBudget(appPermission.BudgetRenewal, appPermission.App.CreatedAt)).Scan(&result)
+	return int64(result.Sum)
 }
 
 func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) error {

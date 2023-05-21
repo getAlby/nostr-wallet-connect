@@ -155,12 +155,25 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 
 	appPermission := AppPermission{}
 	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
+
+	renewsIn := ""
+	budgetUsage := int64(0) 
+	maxAmount := appPermission.MaxAmount
+	if (maxAmount > 0) {
+		budgetUsage = svc.GetBudgetUsage(&appPermission);
+		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
+		endOfBudgetDuration := endOfBudget.Sub(time.Now())
+		renewsIn = (endOfBudgetDuration - (endOfBudgetDuration % time.Minute)) .String()
+	}
+
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
 		"App":         app,
 		"AppPermission": appPermission,
 		"User":        user,
 		"LastEvent":   lastEvent,
 		"EventsCount": eventsCount,
+		"BudgetUsage": budgetUsage,
+		"RenewsIn":    renewsIn,
 	})
 }
 
