@@ -7,17 +7,18 @@ import (
 )
 
 const (
-	NIP_47_INFO_EVENT_KIND       = 13194
-	NIP_47_REQUEST_KIND          = 23194
-	NIP_47_RESPONSE_KIND         = 23195
-	NIP_47_PAY_INVOICE_METHOD    = "pay_invoice"
-	NIP_47_ERROR_INTERNAL        = "INTERNAL"
-	NIP_47_ERROR_NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
-	NIP_47_ERROR_QUOTA_EXCEEDED    = "QUOTA_EXCEEDED"
-	NIP_47_ERROR_INSUFFICIENT_BALANCE    = "INSUFFICIENT_BALANCE"
-	NIP_47_ERROR_UNAUTHORIZED    = "UNAUTHORIZED"
-	NIP_47_ERROR_RESTRICTED    = "RESTRICTED"
-	NIP_47_CAPABILITIES          = "pay_invoice"
+	NIP_47_INFO_EVENT_KIND            = 13194
+	NIP_47_REQUEST_KIND               = 23194
+	NIP_47_RESPONSE_KIND              = 23195
+	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
+	NIP_47_ERROR_INTERNAL             = "INTERNAL"
+	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
+	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
+	NIP_47_ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
+	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
+	NIP_47_ERROR_EXPIRED              = "EXPIRED"
+	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
+	NIP_47_CAPABILITIES               = "pay_invoice"
 )
 
 type AlbyMe struct {
@@ -62,6 +63,8 @@ type AppPermission struct {
 	RequestMethod           string  `gorm:"index" validate:"required"`
 	MaxAmount               int
 	MaxAmountPerTransaction int
+	BudgetRenewal           string
+	ExpiresAt               time.Time
 	CreatedAt               time.Time
 	UpdatedAt               time.Time
 }

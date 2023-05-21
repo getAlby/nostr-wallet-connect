@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
 	"github.com/gorilla/sessions"
@@ -170,6 +171,8 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
 	maxAmountPerTransaction := c.QueryParam("max_amount_per_transaction")
+	budgetRenewal := c.QueryParam("budget_renewal")
+	expiresAt := c.QueryParam("expires_at")
 	
 	user, err := svc.GetUser(c)
 	if err != nil {
@@ -194,6 +197,8 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"ReturnTo": returnTo,
 		"MaxAmount": maxAmount,
 		"MaxAmountPerTransaction": maxAmountPerTransaction,
+		"BudgetRenewal": budgetRenewal,
+		"ExpiresAt": expiresAt,
 	})
 }
 
@@ -224,6 +229,11 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	maxAmountPerTransaction, _ := strconv.Atoi(c.FormValue("MaxAmountPerTransaction"))
+	budgetRenewal := c.FormValue("BudgetRenewal")
+	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+	if !expiresAt.IsZero() {
+		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
+	}
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err = tx.Model(&user).Association("Apps").Append(&app)
@@ -236,6 +246,8 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
 			MaxAmountPerTransaction: maxAmountPerTransaction,
 			MaxAmount:               maxAmount,
+			BudgetRenewal:           budgetRenewal,
+			ExpiresAt:               expiresAt,
 		}
 
 		err = tx.Create(&appPermission).Error
