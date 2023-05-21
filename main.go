@@ -45,6 +45,8 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to open DB %v", err)
 		}
+		// Override SQLite config to max one connection
+		cfg.DatabaseMaxConns = 1
 	}
 	sqlDb, err := db.DB()
 	if err != nil {
