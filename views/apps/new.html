@@ -27,7 +27,7 @@
   {{ end }}
   
   <form method="POST" action="/apps" accept-charset="UTF-8">
-    <fieldset {{ if .Disabled }}disabled class="opacity-80"{{ end }}>
+    <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
       <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
       {{ if eq .Name "" }}
@@ -38,6 +38,7 @@
             >Connection name</label
           >
           <input
+            {{if .Disabled}}tabIndex="-1"{{end}}
             type="text"
             name="name"
             value="{{.Name}}"
@@ -57,7 +58,7 @@
       {{end}}
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .ExpiresAt}}checked{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .ExpiresAt}}checked{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
           onclick="document.getElementById('expiryOption').classList.toggle('hidden');" >
         <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
       </p>
@@ -70,6 +71,7 @@
             >Expiry</label
           >
           <input
+            {{if .Disabled}}tabIndex="-1"{{end}}
             type="date"
             name="ExpiresAt"
             value="{{.ExpiresAt}}"
@@ -82,7 +84,7 @@
       </div>
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
           onclick="document.getElementById('budgetOptions').classList.toggle('hidden');" >
         <label for="BudgetCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
       </p>
@@ -93,7 +95,7 @@
           <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Budget Amount (in sats)
           </label>
-          <input type="text" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
+          <input {{if .Disabled}}tabIndex="-1"{{end}} type="text" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
             pattern="{0-9}.*"
             value={{.MaxAmount}}>
@@ -102,7 +104,7 @@
           <label for="MaxAmountPerTransaction" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Max Amount (per transaction)
           </label>
-          <input type="text" name="MaxAmountPerTransaction" id="MaxAmountPerTransaction"
+          <input {{if .Disabled}}tabIndex="-1"{{end}} type="text" name="MaxAmountPerTransaction" id="MaxAmountPerTransaction"
             aria-describedby="helper-text-explanation"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
             pattern="{0-9}.*"
@@ -115,38 +117,38 @@
           <ul class="items-center w-full sm:flex">
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{ if or (eq .BudgetRenewal "") (eq .BudgetRenewal "never") }}checked{{end}} id="BudgetRenewalNever" type="radio" value="never" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if or (eq .BudgetRenewal "") (eq .BudgetRenewal "never") }}checked{{end}} id="BudgetRenewalNever" type="radio" value="never" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                 <label for="BudgetRenewalNever" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Never</label>
               </div>
             </li>
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{ if eq .BudgetRenewal "daily" }}checked{{end}} id="BudgetRenewalDaily" type="radio" value="daily" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "daily" }}checked{{end}} id="BudgetRenewalDaily" type="radio" value="daily" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                 <label for="BudgetRenewalDaily" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Daily</label>
               </div>
             </li>
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{ if eq .BudgetRenewal "weekly" }}checked{{end}} id="BudgetRenewalWeekly" type="radio" value="weekly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "weekly" }}checked{{end}} id="BudgetRenewalWeekly" type="radio" value="weekly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                 <label for="BudgetRenewalWeekly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Weekly</label>
               </div>
             </li>
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{ if eq .BudgetRenewal "monthly" }}checked{{end}} id="BudgetRenewalMonthly" type="radio" value="monthly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "monthly" }}checked{{end}} id="BudgetRenewalMonthly" type="radio" value="monthly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                 <label for="BudgetRenewalMonthly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Monthly</label>
               </div>
             </li>
             <li class="w-full">
               <div class="flex items-center pl-3">
-                <input {{ if eq .BudgetRenewal "yearly" }}checked{{end}} id="BudgetRenewalYearly" type="radio" value="yearly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "yearly" }}checked{{end}} id="BudgetRenewalYearly" type="radio" value="yearly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                 <label for="BudgetRenewalYearly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Yearly</label>
               </div>
             </li>
           </ul>
         </div>
       </div>
-    </fieldset>
+    </div>
     {{ if .Pubkey }}
       <p class="text-orange-700 bg-orange-50 p-3 mb-6">
         ⚠️ Only connect with apps you trust!
