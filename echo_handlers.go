@@ -172,6 +172,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	maxAmountPerTransaction := c.QueryParam("max_amount_per_transaction")
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at")
+	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || maxAmountPerTransaction != "" || budgetRenewal != "";
 	
 	user, err := svc.GetUser(c)
@@ -195,6 +196,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"BudgetRenewal": budgetRenewal,
 		"ExpiresAt": expiresAt,
 		"BudgetEnabled": budgetEnabled,
+		"Disabled": disabled,
 	})
 }
 
