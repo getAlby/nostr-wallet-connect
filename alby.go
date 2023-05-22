@@ -107,7 +107,7 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		return "", err
 	}
 
-	req.Header.Set("User-Agent", "NWC/1.0")
+	req.Header.Set("User-Agent", "NWC")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
@@ -177,7 +177,7 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		return err
 	}
 
-	req.Header.Set("User-Agent", "NWC/1.0")
+	req.Header.Set("User-Agent", "NWC")
 
 	res, err := client.Do(req)
 	if err != nil {
