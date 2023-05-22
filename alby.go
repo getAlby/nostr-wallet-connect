@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -99,7 +100,17 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 		Invoice: payReq,
 	}
 	err = json.NewEncoder(body).Encode(payload)
-	resp, err := client.Post(fmt.Sprintf("%s/payments/bolt11", svc.cfg.AlbyAPIURL), "application/json", body)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/payments/bolt11", svc.cfg.AlbyAPIURL), body)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /payments/bolt11")
+		return "", err
+	}
+
+	req.Header.Set("User-Agent", "NWC/1.0")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
 			"senderPubkey": senderPubkey,
@@ -159,7 +170,16 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 		return err
 	}
 	client := svc.oauthConf.Client(c.Request().Context(), tok)
-	res, err := client.Get(fmt.Sprintf("%s/user/me", svc.cfg.AlbyAPIURL))
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/user/me", svc.cfg.AlbyAPIURL), nil)
+	if err != nil {
+		svc.Logger.WithError(err).Error("Error creating request /me")
+		return err
+	}
+
+	req.Header.Set("User-Agent", "NWC/1.0")
+
+	res, err := client.Do(req)
 	if err != nil {
 		svc.Logger.WithError(err).Error("Failed to fetch /me")
 		return err
