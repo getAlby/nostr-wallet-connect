@@ -15,7 +15,7 @@
       var g = a, x = c.left + b * h, u = c.top + r * h, p = r, q = b, f = d.a, k = x + h, m = u + h, D = p - 1, E = p + 1, n = q - 1, l = q + 1, y = Math.floor(Math.min(.5, Math.max(0, c.R)) * h), v = f(p, q), I = f(D, n), w = f(D, q); D = f(D, l); var F = f(p, l); l = f(E, l); q = f(E,
         q); E = f(E, n); p = f(p, n); x = Math.round(x); u = Math.round(u); k = Math.round(k); m = Math.round(m); v ? C(g, x, u, k, m, y, !w && !p, !w && !F, !q && !F, !q && !p) : z(g, x, u, k, m, y, w && p && I, w && F && D, q && F && l, q && p && E)
     } A(a, c); a.fill(); return t
-  } var v = { minVersion: 1, maxVersion: 40, ecLevel: "L", left: 0, top: 0, size: 200, fill: "#000", background: null, text: "no text", radius: .5, quiet: 0 }; G = function(t, c) {
+  } var v = { minVersion: 1, maxVersion: 40, ecLevel: "L", left: 0, top: 0, size: 200, fill: (window.matchMedia('(prefers-color-scheme: dark)').matches ? "#FFF" : "000"), background: null, text: "no text", radius: .5, quiet: 0 }; G = function(t, c) {
     var a = {}; Object.assign(a, v, t); a.N = a.minVersion; a.K = a.maxVersion; a.v = a.ecLevel; a.left = a.left; a.top = a.top; a.size = a.size; a.fill = a.fill; a.background = a.background;
     a.text = a.text; a.R = a.radius; a.P = a.quiet; if (c instanceof HTMLCanvasElement) { if (c.width !== a.size || c.height !== a.size) c.width = a.size, c.height = a.size; c.getContext("2d").clearRect(0, 0, c.width, c.height); y(c, a) } else t = document.createElement("canvas"), t.width = a.size, t.height = a.size, a = y(t, a), c.appendChild(a)
   }

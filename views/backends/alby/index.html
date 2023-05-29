@@ -1,7 +1,7 @@
 {{define "body"}}
 
 <div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mt-10"
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mt-10 dark:bg-surface-02dp"
 >
   <div class="text-center">
     <img
@@ -12,7 +12,7 @@
       src="/public/images/nwc-logo.svg"
     />
 
-    <h1 class="font-headline text-3xl sm:text-4xl mb-6">
+    <h1 class="font-headline text-3xl sm:text-4xl mb-6 dark:text-white">
       Nostr Wallet Connect
     </h1>
 
@@ -20,6 +20,7 @@
       <span class="text-gray-500">by</span>
       <a href="https://getalby.com">
         <img
+          id="alby-logo"
           src="/public/images/alby-logo-with-text.svg"
           width="1094"
           height="525"
@@ -28,7 +29,7 @@
       </a>
     </p>
 
-    <h2 class="text-lg mb-4 text-gray-700">
+    <h2 class="text-lg mb-4 text-gray-700 dark:text-neutral-300">
       Securely connect your Alby Account to Nostr clients and applications.
     </h2>
 
@@ -51,7 +52,7 @@
     </p>
 
     <p>
-      <a href="/about" class="text-purple-700"> How does it work?</a>
+      <a href="/about" class="text-purple-700 dark:text-purple-400"> How does it work?</a>
     </p>
   </div>
 </div>

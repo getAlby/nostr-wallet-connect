@@ -1,16 +1,16 @@
 {{define "body"}}
 
 <div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
 >
-  <h2 class="font-bold text-2xl font-headline mb-2">
+  <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white">
     Create a new app connection
   </h2>
 
-  <p class="mb-4">Authorize the new app to:</p>
+  <p class="mb-4 dark:text-white">Authorize the new app to:</p>
 
   <ul class="mb-8">
-    <li class="mb-2 relative pl-6">
+    <li class="mb-2 relative pl-6 dark:text-white">
       <span class="mr-3 absolute left-0">&#9989;</span>
       Send payments from your wallet
     </li>
@@ -30,21 +30,21 @@
         id="name"
         required
         autocomplete="off"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-neutral-800 dark:placeholder-gray-400 dark:text-white"
       />
     </div>
 
     <div class="flex flex-col sm:flex-row sm:justify-center">
       <a
         href="/apps"
-        class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+        class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
       >
         Cancel
       </a>
 
       <button
         type="submit"
-        class="inline-flex w-full sm:w-[250px] bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+        class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
       >
         Confirm
       </button>
@@ -54,7 +54,7 @@
   {{if .User.Email}}
     <hr class="mt-8 mb-4">
 
-    <p class="text-sm text-gray-500 text-center">
+    <p class="text-sm text-gray-500 dark:text-neutral-300 text-center">
       You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
     </p>
   {{end}}
