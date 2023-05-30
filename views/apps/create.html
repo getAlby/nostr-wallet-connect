@@ -114,9 +114,10 @@
   window.addEventListener("DOMContentLoaded", (event) => {
     QrCreator.render(
       {
+        fill: window.matchMedia('(prefers-color-scheme: dark)').matches ? "#FFF" : "#000",
         text: "{{.PairingUri}}",
         size: 384, // in pixels
-      },
+      }, //window.matchMedia('(prefers-color-scheme: dark)').matches ? "#FFF" : 
       document.getElementById("connect-qrcode")
     );
 
