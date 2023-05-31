@@ -74,7 +74,7 @@ module.exports = {
     },
     fontFamily: {
       headline: [
-        '"Work Sans"',
+        "Catamaran",
         '"Inter var"',
         "Helvetica",
         "Arial",

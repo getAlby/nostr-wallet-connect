@@ -30,10 +30,8 @@
             />
             Nostr Wallet Connect
           </a>
-          <div class="flex md:flex-1 items-center">
-            <ul
-              class="hidden md:flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}"
-            >
+          <div class="hidden md:flex-1 md:flex items-center">
+            <ul class="flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}">
               <li class="mx-2 flex">
                 <a
                   class="text-gray-400 pl-5 py-2 font-medium"
@@ -54,14 +52,14 @@
               </li>
             </ul>
             {{if .User}}
-            <div class="pr-4 sm:pr-0">
-              <a
-                class="text-gray-400 pl-5 py-2 font-medium"
-                rel="nofollow"
-                href="/logout"
-              >
-                Logout
-              </a>
+            <div>
+                <a
+                  class="text-gray-400 pl-5 py-2 font-medium"
+                  rel="nofollow"
+                  href="/logout"
+                >
+                  Logout
+                </a>
             </div>
             {{end}}
           </div>
@@ -85,13 +83,13 @@
   </body>
 
   <script type="text/javascript">
-    if (window.location.pathname.startsWith("/apps")) {
+    if (window.location.pathname.startsWith('/apps')) {
       const link = document.querySelector('a[href="/apps"]');
-      link.classList.remove("text-gray-400");
+      link.classList.remove("text-gray-400")
     }
-    if (window.location.pathname.startsWith("/about")) {
+    if (window.location.pathname.startsWith('/about')) {
       const link = document.querySelector('a[href="/about"]');
-      link.classList.remove("text-gray-400");
+      link.classList.remove("text-gray-400")
     }
   </script>
 </html>
