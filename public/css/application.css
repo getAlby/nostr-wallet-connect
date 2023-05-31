@@ -1138,6 +1138,10 @@ select {
   padding-right: 2.5rem;
 }
 
+.pr-4 {
+  padding-right: 1rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -1147,7 +1151,7 @@ select {
 }
 
 .font-headline {
-  font-family: Catamaran, "Inter var", Helvetica, Arial, sans-serif;
+  font-family: "Work Sans", "Inter var", Helvetica, Arial, sans-serif;
 }
 
 .font-mono {
@@ -1493,6 +1497,10 @@ select {
 
   .sm\:justify-center {
     justify-content: center;
+  }
+
+  .sm\:pr-0 {
+    padding-right: 0px;
   }
 
   .sm\:text-2xl {

@@ -16,28 +16,28 @@
   src: url(/public/fonts/Inter-italic.var.woff2) format("woff2");
 }
 
-/* NOTE: source: https://gwfh.mranftl.com/fonts/catamaran?subsets=latin */
-  @font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: 'Catamaran';
-    font-style: normal;
-    font-weight: 700;
-    src: url(/public/fonts/catamaran-v17-latin-700.eot); /* IE9 Compat Modes */
-    src: url(/public/fonts/catamaran-v17-latin-700.eot#iefix) format('embedded-opentype'), /* IE6-IE8 */
-        url(/public/fonts/catamaran-v17-latin-700.woff2) format('woff2'), /* Super Modern Browsers */
-        url(/public/fonts/catamaran-v17-latin-700.woff) format('woff'), /* Modern Browsers */
-        url(/public/fonts/catamaran-v17-latin-700.ttf) format('truetype'), /* Safari, Android, iOS */
-        url(/public/fonts/catamaran-v17-latin-700.svg#Catamaran) format('svg'); /* Legacy iOS */
-  }
-  @font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: 'Catamaran';
-    font-style: normal;
-    font-weight: 900;
-    src: url(/public/fonts/catamaran-v17-latin-900.eot); /* IE9 Compat Modes */
-    src: url(/public/fonts/catamaran-v17-latin-900.eot#iefix) format('embedded-opentype'), /* IE6-IE8 */
-        url(/public/fonts/catamaran-v17-latin-900.woff2) format('woff2'), /* Super Modern Browsers */
-        url(/public/fonts/catamaran-v17-latin-900.woff) format('woff'), /* Modern Browsers */
-        url(/public/fonts/catamaran-v17-latin-900.ttf) format('truetype'), /* Safari, Android, iOS */
-        url(/public/fonts/catamaran-v17-latin-900.svg#Catamaran) format('svg'); /* Legacy iOS */
-  }
+/* NOTE: source: https://gwfh.mranftl.com/fonts/work-sans?subsets=latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/public/fonts/work-sans-v18-latin-500.eot'); /* IE9 Compat Modes */
+  src: url('/public/fonts/work-sans-v18-latin-500.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('/public/fonts/work-sans-v18-latin-500.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/public/fonts/work-sans-v18-latin-500.woff') format('woff'), /* Modern Browsers */
+       url('/public/fonts/work-sans-v18-latin-500.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('/public/fonts/work-sans-v18-latin-500.svg#WorkSans') format('svg'); /* Legacy iOS */
+}
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Work Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/public/fonts/work-sans-v18-latin-600.eot'); /* IE9 Compat Modes */
+  src: url('/public/fonts/work-sans-v18-latin-600.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('/public/fonts/work-sans-v18-latin-600.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/public/fonts/work-sans-v18-latin-600.woff') format('woff'), /* Modern Browsers */
+       url('/public/fonts/work-sans-v18-latin-600.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('/public/fonts/work-sans-v18-latin-600.svg#WorkSans') format('svg'); /* Legacy iOS */
+}
