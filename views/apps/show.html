@@ -29,6 +29,11 @@
       <span class="mr-3 absolute left-0">&#9989;</span>
       Send payments from your wallet
     </li>
+    {{ if not .AppPermission.ExpiresAt.IsZero}}
+      <p>
+        Expiry: {{.AppPermission.ExpiresAt}}
+      </p>
+    {{end}}
     {{ if gt .AppPermission.BudgetRenewal "" }}
       <p>
         Budget Renewal: {{.AppPermission.BudgetRenewal}}
@@ -37,11 +42,6 @@
     {{ if gt .AppPermission.MaxAmount 0 }}
       <p>
         Budget Amount: {{.AppPermission.MaxAmount}}
-      </p>
-    {{end}}
-    {{ if gt .AppPermission.MaxAmountPerTransaction 0 }}
-      <p>
-        Maximum Transaction Amount: {{.AppPermission.MaxAmountPerTransaction}}
       </p>
     {{end}}
     {{ if gt .AppPermission.MaxAmount 0 }}

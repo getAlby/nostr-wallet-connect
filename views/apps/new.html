@@ -58,7 +58,7 @@
       {{end}}
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .ExpiresAt}}checked{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
           onclick="document.getElementById('expiryOption').classList.toggle('hidden');" >
         <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
       </p>
@@ -99,16 +99,6 @@
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
             pattern="{0-9}.*"
             value={{.MaxAmount}}>
-        </div>
-        <div class="mt-4">
-          <label for="MaxAmountPerTransaction" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            Max Amount (per transaction)
-          </label>
-          <input {{if .Disabled}}tabIndex="-1"{{end}} type="text" name="MaxAmountPerTransaction" id="MaxAmountPerTransaction"
-            aria-describedby="helper-text-explanation"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
-            pattern="{0-9}.*"
-            value={{.MaxAmountPerTransaction}}>
         </div>
         <div class="mt-4">
           <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -184,7 +174,22 @@
 </div>
 
 <script type="text/javascript">
-  var today = new Date().toISOString().split('T')[0];
-  document.getElementById("ExpiresAt").min = today;
+  var today = new Date();
+  dateInput.min = today.toISOString().split('T')[0];
+  var dateInput = document.getElementById("ExpiresAt");
+  var expiryCheckbox = document.getElementById("ExpiryCheckbox");
+  var expiry = new Date("{{.ExpiresAt}}");
+  if (isNaN(Date.parse(expiry))) {
+    today.setMonth(today.getMonth() + 6);
+    dateInput.value = today.toISOString().split('T')[0];
+  } else {
+    expiryCheckbox.checked = true;
+    dateInput.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
+  }
+  expiryCheckbox.addEventListener("change", function(e) {
+    if (!expiryCheckbox.checked) {
+      dateInput.value = null
+    }
+  });
 </script>
 {{end}}

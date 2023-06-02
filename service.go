@@ -339,13 +339,6 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 		svc.Logger.Info("This pubkey is expired")
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
 	}
-	MaxAmountPerTransaction := appPermission.MaxAmountPerTransaction
-	if MaxAmountPerTransaction != 0 {
-		if paymentRequest.MSatoshi/1000 > int64(MaxAmountPerTransaction) {
-			svc.Logger.Info("trying to send more than max amount per transaction in budget")
-			return false, NIP_47_ERROR_INSUFFICIENT_BALANCE, "Payment amount is greater than budget allows"
-		}
-	}
 	
 	maxAmount := appPermission.MaxAmount
 	if maxAmount != 0 {

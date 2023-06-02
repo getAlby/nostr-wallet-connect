@@ -62,7 +62,6 @@ type AppPermission struct {
 	App                     App  `gorm:"constraint:OnDelete:CASCADE"`
 	RequestMethod           string  `gorm:"index" validate:"required"`
 	MaxAmount               int
-	MaxAmountPerTransaction int
 	BudgetRenewal           string
 	ExpiresAt               time.Time
 	CreatedAt               time.Time
