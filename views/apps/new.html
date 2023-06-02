@@ -176,29 +176,26 @@
   var today = new Date();
   var dateInput = document.getElementById("ExpiresAt");
   dateInput.min = today.toISOString().split('T')[0];
+
+  var sixMonthsFromNow = new Date();
+  sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+
   var expiryCheckbox = document.getElementById("ExpiryCheckbox");
   var expiryOptions = document.getElementById("ExpiryOptions");
 
-  function setDate(init) {
-    var expiry = new Date("{{.ExpiresAt}}");
-    if (isNaN(Date.parse(expiry))) {
-      var sixMonthsFromNow = new Date();
-      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-      dateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
-    } else {
-      if (init) expiryCheckbox.checked = true;
-      expiryOptions.classList.remove("hidden");
-      dateInput.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
-    }
+  var expiry = new Date("{{.ExpiresAt}}");
+  if (!isNaN(Date.parse(expiry))) {
+    expiryCheckbox.checked = true;
+    expiryOptions.classList.remove("hidden");
+    dateInput.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
   }
-  setDate(true);
 
   expiryCheckbox.addEventListener("change", function(e) {
     if (!expiryCheckbox.checked) {
       dateInput.value = null;
       expiryOptions.classList.add("hidden");
     } else {
-      setDate();
+      dateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
       expiryOptions.classList.remove("hidden");
     }
   });

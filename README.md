@@ -77,7 +77,6 @@ If the client creates the secret the client only needs to share the public key o
 - `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization
 - `expires_at` (optional) connection cannot be used after this date. Format: 2024-05-23
 - `max_amount` (optional) maximum amount in sats that can be sent per renewal period
-- `max_amount_per_transaction` (optional) maximum amount in sats that can be sent in a single transaction
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
 - `editable` (optional) set to `false` to disable form editing by the user
 
