@@ -352,7 +352,9 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 }
 
 func (svc *Service) GetBudgetUsage(appPermission *AppPermission) int64 {
-	var result SumResult
+	var result struct {
+		Sum uint
+	}
 	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", appPermission.AppId, GetStartOfBudget(appPermission.BudgetRenewal, appPermission.App.CreatedAt)).Scan(&result)
 	return int64(result.Sum)
 }

@@ -52,10 +52,6 @@ type App struct {
 	UpdatedAt   time.Time
 }
 
-type SumResult struct {
-	Sum uint
-}
-
 type AppPermission struct {
 	ID                      uint `gorm:"primaryKey"`
 	AppId                   uint `gorm:"index" validate:"required"`
