@@ -1,6 +1,6 @@
 # Nostr Wallet Connect
 
-This application allows you to control your Lightning node or wallet over Nostr. 
+This application allows you to control your Lightning node or wallet over Nostr.
 Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linktr.ee/amethyst.social) to your node.
 
 
@@ -19,7 +19,7 @@ Connect applications like [Damus](https://damus.io/) or [Amethyst](https://linkt
 
 The application has no runtime dependencies. (simple Go executable).
 
-As data storage SQLite or PostgreSQL (recommended) can be used. 
+As data storage SQLite or PostgreSQL (recommended) can be used.
 
     $ cp .env.example .env
     # edit the config for your needs
@@ -74,7 +74,7 @@ If the client creates the secret the client only needs to share the public key o
 ##### Query parameter options
 - `c`: the name of the client app
 - `pubkey`: the public key of the client's secret for the user to authorize
-- `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization
+- `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization. The `lud16`, `relay` and `pubkey` query parameters will be added to the URL.
 
 Example:
 
