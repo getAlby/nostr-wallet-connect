@@ -154,6 +154,7 @@ func main() {
 	if err != nil {
 		svc.Logger.Fatal(err)
 	}
+	svc.Relay = relay
 
 	//publish event with NIP-47 info
 	err = svc.PublishNip47Info(ctx, relay)

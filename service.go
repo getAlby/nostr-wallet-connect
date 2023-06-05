@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +24,7 @@ type Service struct {
 	lnClient    LNClient
 	ReceivedEOS bool
 	Logger      *logrus.Logger
+	Relay       *nostr.Relay
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
@@ -270,4 +273,70 @@ func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) er
 		return fmt.Errorf("Nostr publish not succesful: %s", status)
 	}
 	return nil
+}
+
+func (svc *Service) PublishBalanceEvent(ctx context.Context, app App, balance int) error {
+	response := BalanceResponse{
+		Balance: balance,
+	}
+	payloadBytes, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+	ss, err := nip04.ComputeSharedSecret(app.NostrPubkey, svc.cfg.NostrSecretKey)
+	if err != nil {
+		return err
+	}
+	msg, err := nip04.Encrypt(string(payloadBytes), ss)
+	if err != nil {
+		return err
+	}
+	ev := &nostr.Event{
+		PubKey:    svc.cfg.IdentityPubkey,
+		CreatedAt: time.Now(),
+		Kind:      NIP_47_BALANCE_EVENT_KIND,
+		Tags:      nostr.Tags{[]string{"p", app.NostrPubkey}},
+		Content:   msg,
+	}
+	err = ev.Sign(svc.cfg.NostrSecretKey)
+	if err != nil {
+		return err
+	}
+	status := svc.Relay.Publish(ctx, *ev)
+	if status != nostr.PublishStatusSucceeded {
+		return fmt.Errorf("Nostr publish not succesful: %s", status)
+	}
+	svc.Logger.WithFields(logrus.Fields{
+		"status":       status,
+		"replyEventId": ev.ID,
+		"appId":        app.ID,
+	}).Info("Published reply")
+
+	return nil
+}
+
+func (svc *Service) BalanceHandler(c echo.Context) error {
+	alby_identifier := c.FormValue("alby_identifier")
+	balance := c.FormValue("balance")
+
+	user := User{}
+	if err := svc.db.Preload("Apps").First(&user, User{AlbyIdentifier: alby_identifier}).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+		}
+		return err
+	}
+
+	balanceInt, err := strconv.Atoi(balance)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad arguments, balance should be a string"})
+	}
+	for _, app := range user.Apps {
+		err = svc.PublishBalanceEvent(c.Request().Context(), app, balanceInt)
+		if err != nil {
+			svc.Logger.Error(err)
+		}
+	}
+
+	return c.JSON(http.StatusOK, &user)
 }
