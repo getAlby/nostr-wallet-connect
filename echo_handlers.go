@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
 
 	echologrus "github.com/davrux/echo-logrus/v4"
@@ -214,7 +215,17 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
 	if err == nil {
 		if c.FormValue("returnTo") != "" {
-			return c.Redirect(302, c.FormValue("returnTo"))
+			returnToUrl, err := url.Parse(c.FormValue("returnTo"))
+			if err == nil {
+				query := returnToUrl.Query()
+				query.Add("relay", svc.cfg.Relay)
+				query.Add("pubkey", svc.cfg.IdentityPubkey)
+				if user.LightningAddress != "" {
+					query.Add("lud16", user.LightningAddress)
+				}
+				returnToUrl.RawQuery = query.Encode()
+				return c.Redirect(302, returnToUrl.String())
+			}
 		}
 		var lud16 string
 		if user.LightningAddress != "" {
