@@ -22,6 +22,7 @@ type Config struct {
 	OAuthTokenUrl           string `envconfig:"OAUTH_TOKEN_URL" default:"https://api.getalby.com/oauth/token"`
 	Port                    string `envconfig:"PORT" default:"8080"`
 	DatabaseUri             string `envconfig:"DATABASE_URI" default:"nostr-wallet-connect.db"`
+	TipLightningAddress     string `envconfig:"TIP_LIGHTNING_ADDRESS" default:"hello@getalby.com"`
 	DatabaseMaxConns        int    `envconfig:"DATABASE_MAX_CONNS" default:"10"`
 	DatabaseMaxIdleConns    int    `envconfig:"DATABASE_MAX_IDLE_CONNS" default:"5"`
 	DatabaseConnMaxLifetime int    `envconfig:"DATABASE_CONN_MAX_LIFETIME" default:"1800"` // 30 minutes

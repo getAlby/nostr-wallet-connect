@@ -196,6 +196,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	}
 
 	name := c.FormValue("name")
+	tipNWC := c.FormValue("tip-nwc") == "on"
 	var pairingPublicKey string
 	var pairingSecretKey string
 	if c.FormValue("pubkey") == "" {
@@ -211,7 +212,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		}
 	}
 
-	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey})
+	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: name, NostrPubkey: pairingPublicKey, TipNWC: tipNWC})
 	if err == nil {
 		if c.FormValue("returnTo") != "" {
 			return c.Redirect(302, c.FormValue("returnTo"))

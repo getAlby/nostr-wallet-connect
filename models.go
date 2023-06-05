@@ -46,6 +46,7 @@ type App struct {
 	NostrPubkey string `gorm:"index"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	TipNWC      bool
 }
 
 type NostrEvent struct {
