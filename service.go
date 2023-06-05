@@ -154,7 +154,7 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
 			"appId":     app.ID,
-		}).Errorf("Failed to save nostr event: %v", err)
+		}).Errorf("Failed to save nostr event: %v", insertNostrEventResult.Error)
 		return nil, insertNostrEventResult.Error
 	}
 
