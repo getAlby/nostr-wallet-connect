@@ -270,17 +270,19 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		appPermission := AppPermission{
-			App:                     app,
-			RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
-			MaxAmount:               maxAmount,
-			BudgetRenewal:           budgetRenewal,
-			ExpiresAt:               expiresAt,
-		}
-
-		err = tx.Create(&appPermission).Error
-		if err != nil {
-			return err
+		if maxAmount > 0 || !expiresAt.IsZero() {
+			appPermission := AppPermission{
+				App:                     app,
+				RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
+				MaxAmount:               maxAmount,
+				BudgetRenewal:           budgetRenewal,
+				ExpiresAt:               expiresAt,
+			}
+	
+			err = tx.Create(&appPermission).Error
+			if err != nil {
+				return err
+			}
 		}
 	
 		// commit transaction
