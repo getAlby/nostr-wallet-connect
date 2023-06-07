@@ -310,7 +310,7 @@ func GetEndOfBudget(budget_type string, createdAt time.Time) time.Time {
 	case "yearly":
 		return start.AddDate(1, 0, 0)
 	default: //"never"
-		return start.AddDate(9999, 0, 0)
+		return time.Time{}
 	}
 }
 

@@ -162,8 +162,29 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	if (maxAmount > 0) {
 		budgetUsage = svc.GetBudgetUsage(&appPermission);
 		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
-		endOfBudgetDuration := endOfBudget.Sub(time.Now())
-		renewsIn = (endOfBudgetDuration - (endOfBudgetDuration % time.Minute)) .String()
+
+		if endOfBudget.IsZero() {
+			renewsIn = "--"
+		} else {
+			endOfBudgetDuration := endOfBudget.Sub(time.Now())
+	
+			if endOfBudgetDuration.Hours() < 24 {
+				hours := int(endOfBudgetDuration.Hours())
+				minutes := int(endOfBudgetDuration.Minutes()) % 60
+				renewsIn = fmt.Sprintf("%d hours and %d minutes", hours, minutes)
+			} else if endOfBudgetDuration.Hours() < 24*30 {
+				days := int(endOfBudgetDuration.Hours() / 24)
+				renewsIn = fmt.Sprintf("%d days", days)
+			} else {
+				months := int(endOfBudgetDuration.Hours() / 24 / 30)
+				days := int(endOfBudgetDuration.Hours()/24) % 30
+				if days > 0 {
+					renewsIn = fmt.Sprintf("%d months %d days", months, days)
+				} else {
+					renewsIn = fmt.Sprintf("%d months", months)
+				}
+			}
+		}
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
