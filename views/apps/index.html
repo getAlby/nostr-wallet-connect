@@ -7,7 +7,7 @@
     <h2 class="font-bold text-2xl font-headline py-2">Your app connections</h2>
 
     <a
-      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900 dark:hover:bg-surface-16dp{{end}}"
+      class="inline-flex bg-purple-700 border border-warmGray cursor-pointer duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900:bg-surface-16dp{{end}}"
       href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}"
     >
       <img
@@ -27,7 +27,7 @@
       class="table-fixed w-full text-sm text-left"
     >
       <thead
-        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 rounded-t-lg"
+        class="text-xs text-gray-700 uppercase bg-gray-50 rounded-t-lg"
       >
         <tr>
           <th scope="col" class="px-6 py-3 w-2/5">Name</th>
@@ -37,18 +37,18 @@
       </thead>
       <tbody>
         {{if not .Apps}}
-          <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
-            <td colspan="3" class="px-6 py-16 text-center text-gray-500 dark:text-gray-400">
+          <tr class="bg-white border-t">
+            <td colspan="3" class="px-6 py-16 text-center text-gray-500">
               No active connections at the moment
             </td>
           </tr>
         {{else}}
         {{range .Apps}}
-        <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700 cursor-pointer hover:bg-purple-50" onclick="window.location='/apps/{{.ID}}'">
+        <tr class="bg-white border-t cursor-pointer hover:bg-purple-50" onclick="window.location='/apps/{{.ID}}'">
           <td class="px-6 py-4">
             {{.Name}}
           </td>
-          <td class="px-6 py-4 text-gray-500 dark:text-gray-400">
+          <td class="px-6 py-4 text-gray-500">
             {{if gt (index $.EventsCounts .ID) 0 }}
               {{(index $.LastEvents .ID).CreatedAt.Format "02 Jan 06 15:04 MST" }}
             {{else}}
