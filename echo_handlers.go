@@ -50,7 +50,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
 	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
-	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))	
+	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
@@ -157,45 +157,50 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
 
 	renewsIn := ""
-	budgetUsage := int64(0) 
+	budgetUsage := int64(0)
 	maxAmount := appPermission.MaxAmount
-	if (maxAmount > 0) {
-		budgetUsage = svc.GetBudgetUsage(&appPermission);
+	if maxAmount > 0 {
+		budgetUsage = svc.GetBudgetUsage(&appPermission)
 		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
+		renewsIn = getEndOfBudgetString(endOfBudget)
 
-		if endOfBudget.IsZero() {
-			renewsIn = "--"
-		} else {
-			endOfBudgetDuration := endOfBudget.Sub(time.Now())
-	
-			if endOfBudgetDuration.Hours() < 24 {
-				hours := int(endOfBudgetDuration.Hours())
-				minutes := int(endOfBudgetDuration.Minutes()) % 60
-				renewsIn = fmt.Sprintf("%d hours and %d minutes", hours, minutes)
-			} else if endOfBudgetDuration.Hours() < 24*30 {
-				days := int(endOfBudgetDuration.Hours() / 24)
-				renewsIn = fmt.Sprintf("%d days", days)
-			} else {
-				months := int(endOfBudgetDuration.Hours() / 24 / 30)
-				days := int(endOfBudgetDuration.Hours()/24) % 30
-				if days > 0 {
-					renewsIn = fmt.Sprintf("%d months %d days", months, days)
-				} else {
-					renewsIn = fmt.Sprintf("%d months", months)
-				}
-			}
-		}
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":         app,
+		"App":           app,
 		"AppPermission": appPermission,
-		"User":        user,
-		"LastEvent":   lastEvent,
-		"EventsCount": eventsCount,
-		"BudgetUsage": budgetUsage,
-		"RenewsIn":    renewsIn,
+		"User":          user,
+		"LastEvent":     lastEvent,
+		"EventsCount":   eventsCount,
+		"BudgetUsage":   budgetUsage,
+		"RenewsIn":      renewsIn,
 	})
+}
+
+func getEndOfBudgetString(endOfBudget time.Time) (result string) {
+	if endOfBudget.IsZero() {
+		return "--"
+	}
+	endOfBudgetDuration := endOfBudget.Sub(time.Now())
+
+	//less than a day
+	if endOfBudgetDuration.Hours() < 24 {
+		hours := int(endOfBudgetDuration.Hours())
+		minutes := int(endOfBudgetDuration.Minutes()) % 60
+		return fmt.Sprintf("%d hours and %d minutes", hours, minutes)
+	}
+	//less than a month
+	if endOfBudgetDuration.Hours() < 24*30 {
+		days := int(endOfBudgetDuration.Hours() / 24)
+		return fmt.Sprintf("%d days", days)
+	}
+	//more than a month
+	months := int(endOfBudgetDuration.Hours() / 24 / 30)
+	days := int(endOfBudgetDuration.Hours()/24) % 30
+	if days > 0 {
+		return fmt.Sprintf("%d months %d days", months, days)
+	}
+	return fmt.Sprintf("%d months", months)
 }
 
 func (svc *Service) AppsNewHandler(c echo.Context) error {
@@ -206,8 +211,8 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY
 	disabled := c.QueryParam("editable") == "false"
-	budgetEnabled := maxAmount != "" || budgetRenewal != "";
-	
+	budgetEnabled := maxAmount != "" || budgetRenewal != ""
+
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -218,17 +223,17 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
 	}
-	
+
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":     user,
-		"Name":     appName,
-		"Pubkey":   pubkey,
-		"ReturnTo": returnTo,
-		"MaxAmount": maxAmount,
+		"User":          user,
+		"Name":          appName,
+		"Pubkey":        pubkey,
+		"ReturnTo":      returnTo,
+		"MaxAmount":     maxAmount,
 		"BudgetRenewal": budgetRenewal,
-		"ExpiresAt": expiresAt,
+		"ExpiresAt":     expiresAt,
 		"BudgetEnabled": budgetEnabled,
-		"Disabled": disabled,
+		"Disabled":      disabled,
 	})
 }
 
@@ -272,19 +277,19 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 
 		if maxAmount > 0 || !expiresAt.IsZero() {
 			appPermission := AppPermission{
-				App:                     app,
-				RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
-				MaxAmount:               maxAmount,
-				BudgetRenewal:           budgetRenewal,
-				ExpiresAt:               expiresAt,
+				App:           app,
+				RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+				MaxAmount:     maxAmount,
+				BudgetRenewal: budgetRenewal,
+				ExpiresAt:     expiresAt,
 			}
-	
+
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
 			}
 		}
-	
+
 		// commit transaction
 		return nil
 	})
@@ -293,7 +298,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		svc.Logger.WithFields(logrus.Fields{
 			"pairingPublicKey": pairingPublicKey,
 			"name":             name,
-			}).Errorf("Failed to save app: %v", err)
+		}).Errorf("Failed to save app: %v", err)
 		return c.Redirect(302, "/apps")
 	}
 
