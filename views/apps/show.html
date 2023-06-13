@@ -29,7 +29,24 @@
       <span class="mr-3 absolute left-0">&#9989;</span>
       Send payments from your wallet
     </li>
-  </ul>
+    {{ if not .AppPermission.ExpiresAt.IsZero}}
+      <p>
+        Expiry: {{.AppPermission.ExpiresAt}}
+      </p>
+    {{end}}
+    {{ if gt .AppPermission.MaxAmount 0 }}
+      <p>
+        Budget Amount: {{.AppPermission.MaxAmount}}
+      </p>
+    {{end}}
+    {{ if gt .AppPermission.MaxAmount 0 }}
+      <p>
+        Current usage: {{.BudgetUsage}} / {{.AppPermission.MaxAmount}} sats
+      </p>
+      <p>Renews in: {{.RenewsIn}} (set to {{.AppPermission.BudgetRenewal}})</p>
+    {{ end  }}
+  </li>
+</ul>
 
   <hr class="mb-4 mt-4">
 

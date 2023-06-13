@@ -159,9 +159,11 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	}
 
 	var bolt11 string
+	var requestMethod string
 	if strings.HasPrefix(payload, "ln") {
 		//legacy
 		bolt11 = payload
+		requestMethod = NIP_47_PAY_INVOICE_METHOD
 	} else {
 		payParams := &Nip47PayParams{}
 		nip47Request := &Nip47Request{
@@ -171,10 +173,11 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		if err != nil {
 			return nil, err
 		}
-		if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
+		requestMethod = nip47Request.Method
+		if requestMethod != NIP_47_PAY_INVOICE_METHOD {
 			return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
 				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
-				Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
+				Message: fmt.Sprintf("Unknown method: %s", requestMethod),
 			}}, ss)
 		}
 		bolt11 = payParams.Invoice
@@ -190,6 +193,22 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		//todo: create & send response
 		return nil, err
 	}
+
+	hasPermission, code, message := svc.hasPermission(&app, event, requestMethod, &paymentRequest)
+	
+	if (!hasPermission) {
+		svc.Logger.WithFields(logrus.Fields{
+			"eventId":   event.ID,
+			"eventKind": event.Kind,
+			"appId":     app.ID,
+		}).Errorf("App does not have permission: %s %s", code, message)
+
+		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+			Code:    code,
+			Message: message,
+		}}, ss)
+	}
+
 	payment := Payment{App: app, NostrEvent: nostrEvent, PaymentRequest: bolt11, Amount: uint(paymentRequest.MSatoshi / 1000)}
 	insertPaymentResult := svc.db.Create(&payment)
 	if insertPaymentResult.Error != nil {
@@ -253,6 +272,91 @@ func (svc *Service) createResponse(initialEvent *nostr.Event, content interface{
 		return nil, err
 	}
 	return resp, nil
+}
+
+func GetStartOfBudget(budget_type string, createdAt time.Time) time.Time {
+	now := time.Now()
+	switch budget_type {
+	case "daily":
+		// TODO: Use the location of the user, instead of the server
+		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	case "weekly":
+		weekday := now.Weekday()
+		var startOfWeek time.Time
+		if weekday == 0 {
+			startOfWeek = now.AddDate(0, 0, -6)
+		} else {
+			startOfWeek = now.AddDate(0, 0, -int(weekday)+1)
+		}
+		return time.Date(startOfWeek.Year(), startOfWeek.Month(), startOfWeek.Day(), 0, 0, 0, 0, startOfWeek.Location())
+	case "monthly":
+		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	case "yearly":
+		return time.Date(now.Year(), time.January, 1, 0, 0, 0, 0, now.Location())
+	default: //"never"
+		return createdAt
+	}
+}
+
+func GetEndOfBudget(budget_type string, createdAt time.Time) time.Time {
+	start := GetStartOfBudget(budget_type, createdAt)
+	switch budget_type {
+	case "daily":
+		return start.AddDate(0, 0, 1)
+	case "weekly":
+		return start.AddDate(0, 0, 7)
+	case "monthly":
+		return start.AddDate(0, 1, 0)
+	case "yearly":
+		return start.AddDate(1, 0, 0)
+	default: //"never"
+		return time.Time{}
+	}
+}
+
+func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod string, paymentRequest *decodepay.Bolt11) (result bool, code string, message string) {
+	// find all permissions for the app
+	appPermissions := []AppPermission{}
+	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
+		AppId:     app.ID,
+	})
+	if findPermissionsResult.RowsAffected == 0 {
+		// No permissions created for this app. It can do anything
+		svc.Logger.Info("No permissions found for app", app.ID)
+		return true, "", ""
+	}
+
+	appPermission := AppPermission{}
+	findPermissionResult := findPermissionsResult.Limit(1).Find(&appPermission, &AppPermission{
+		RequestMethod: requestMethod,
+	})
+	if findPermissionResult.RowsAffected == 0 {
+		// No permission for this request method
+		return false, NIP_47_ERROR_RESTRICTED, fmt.Sprintf("This app does not have permission to request %s", requestMethod)
+	}
+	ExpiresAt := appPermission.ExpiresAt
+	if !ExpiresAt.IsZero() && ExpiresAt.Before(time.Now()) {
+		svc.Logger.Info("This pubkey is expired")
+		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
+	}
+	
+	maxAmount := appPermission.MaxAmount
+	if maxAmount != 0 {
+		budgetUsage := svc.GetBudgetUsage(&appPermission)
+		
+		if budgetUsage +paymentRequest.MSatoshi/1000 > int64(maxAmount) {
+			return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
+		}
+	}
+	return true, "", ""
+}
+
+func (svc *Service) GetBudgetUsage(appPermission *AppPermission) int64 {
+	var result struct {
+		Sum uint
+	}
+	svc.db.Table("payments").Select("SUM(amount) as sum").Where("app_id = ? AND preimage IS NOT NULL AND created_at > ?", appPermission.AppId, GetStartOfBudget(appPermission.BudgetRenewal, appPermission.App.CreatedAt)).Scan(&result)
+	return int64(result.Sum)
 }
 
 func (svc *Service) PublishNip47Info(ctx context.Context, relay *nostr.Relay) error {
