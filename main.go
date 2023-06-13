@@ -57,7 +57,7 @@ func main() {
 	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
 	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
 	if err != nil {
 		log.Fatalf("Failed migrate DB %v", err)
 	}
