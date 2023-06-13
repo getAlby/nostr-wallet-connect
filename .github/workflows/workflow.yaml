@@ -1,4 +1,4 @@
-name: Docker build & push
+name: Linux Docker build & Alby CD
 on:
   push:
   release:
