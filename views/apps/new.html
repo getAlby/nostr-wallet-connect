@@ -1,9 +1,9 @@
 {{define "body"}}
 
 <div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
 >
-  <h2 class="font-bold text-2xl font-headline mb-4">
+  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
     {{if .Name}}
       Connect to {{.Name}}
     {{else}}
@@ -45,10 +45,10 @@
             id="name"
             required
             autocomplete="off"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
           />
           <p
-            class="mb-6 text-sm text-gray-500 dark:text-gray-400"
+            class="mt-2 mb-6 text-sm text-gray-500 dark:text-gray-400"
           >
             Give your connection a name to easily identify it.
           </p>
@@ -58,7 +58,7 @@
       {{end}}
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
         <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the expiry date.</p>
@@ -78,13 +78,13 @@
             id="ExpiresAt"
             autocomplete="off"
             min=""
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:[color-scheme:dark]"
           />
         </div>
       </div>
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" >
+        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700" >
         <label for="BudgetCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
@@ -95,7 +95,7 @@
             Budget Amount (in sats)
           </label>
           <input {{if .Disabled}}tabIndex="-1"{{end}} type="number" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
             pattern="{0-9}.*"
             value={{.MaxAmount}}>
         </div>
@@ -148,7 +148,7 @@
       {{ if not .Pubkey }}
       <a
         href="/apps"
-        class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+        class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
       >
         Cancel
       </a>
@@ -156,7 +156,7 @@
 
       <button
         type="submit"
-        class="inline-flex w-full sm:w-[250px] bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+        class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
       >
       {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
       </button>
@@ -164,9 +164,7 @@
   </form>
 
   {{if .User.Email}}
-    <hr class="mt-8 mb-4">
-
-    <p class="text-sm text-gray-500 text-center">
+    <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
       You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
     </p>
   {{end}}
