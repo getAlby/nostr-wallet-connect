@@ -38,6 +38,41 @@
       </p>
     </div>
   </div>
+
+  <hr class="mb-4 mt-4">
+
+  <h3 class="text-xl font-headline mb-2">Permissions</h3>
+
+  <ul>
+    <li class="mb-2 relative pl-6">
+      <span class="mr-3 absolute left-0">&#9989;</span>
+      Send payments from your wallet
+    </li>
+    {{ if not .AppPermission.ExpiresAt.IsZero}}
+      <p>
+        Expiry: {{.AppPermission.ExpiresAt}}
+      </p>
+    {{end}}
+    {{ if gt .AppPermission.MaxAmount 0 }}
+      <p>
+        Budget Amount: {{.AppPermission.MaxAmount}}
+      </p>
+    {{end}}
+    {{ if gt .AppPermission.MaxAmount 0 }}
+      <p>
+        Current usage: {{.BudgetUsage}} / {{.AppPermission.MaxAmount}} sats
+      </p>
+      <p>Renews in: {{.RenewsIn}} (set to {{.AppPermission.BudgetRenewal}})</p>
+    {{ end  }}
+  </li>
+</ul>
+
+  <hr class="mb-4 mt-4">
+
+  <h3 class="text-xl font-headline mb-2">Danger zone</h3>
+  <p class="text-sm mb-4">
+    This will revoke the permission and will no longer allow calls from this pubkey.
+  </p>
   <form method="post" action="/apps/delete/{{.App.ID}}">
     <button type="submit"
       class="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>

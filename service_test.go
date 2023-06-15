@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/nbd-wtf/go-nostr"
@@ -69,6 +70,8 @@ func TestHandleEvent(t *testing.T) {
 		PubKey:  senderPubkey,
 		Content: payload,
 	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
 	received := &Nip47Response{}
 	decrypted, err := nip04.Decrypt(res.Content, ss)
 	assert.NoError(t, err)
@@ -81,7 +84,8 @@ func TestHandleEvent(t *testing.T) {
 	err = svc.db.Create(user).Error
 	assert.NoError(t, err)
 	//register app
-	err = svc.db.Model(&user).Association("Apps").Append(&App{Name: "test", NostrPubkey: senderPubkey})
+	app := App{Name: "test", NostrPubkey: senderPubkey}
+	err = svc.db.Model(&user).Association("Apps").Append(&app)
 	assert.NoError(t, err)
 	//test old payload
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
@@ -130,12 +134,102 @@ func TestHandleEvent(t *testing.T) {
 		Content: wrongMethodPayload,
 	})
 	assert.NoError(t, err)
+	//add app permissions
+	maxAmount := 1000
+	budgetRenewal := "never"
+	expiresAt := time.Now().Add(24 * time.Hour);
+	appPermission := &AppPermission{
+		AppId:                   app.ID,
+		App:                     app,
+		RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:               maxAmount,
+		BudgetRenewal:           budgetRenewal,
+		ExpiresAt:               expiresAt,
+	}
+	err = svc.db.Create(appPermission).Error
+	assert.NoError(t, err)
+	// permissions: no limitations
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_6",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{
+		Result: &Nip47PayResponse{},
+	}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Result.(*Nip47PayResponse).Preimage, "123preimage")
+	// permissions: budget overflow
+	newMaxAmount := 100
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("max_amount", newMaxAmount).Error
+
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_7",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
+	assert.NotNil(t, res)
+	// permissions: expired app
+	newExpiry := time.Now().Add(-24 * time.Hour);
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", newExpiry).Error
+
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_8",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_EXPIRED)
+	assert.NotNil(t, res)
+	// permissions: no request method
+	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("request_method", nil).Error
+
+	res, err = svc.HandleEvent(ctx, &nostr.Event{
+		ID:      "test_event_9",
+		Kind:    NIP_47_REQUEST_KIND,
+		PubKey:  senderPubkey,
+		Content: newPayload,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+
+	decrypted, err = nip04.Decrypt(res.Content, ss)
+	assert.NoError(t, err)
+	received = &Nip47Response{}
+	err = json.Unmarshal([]byte(decrypted), received)
+	assert.NoError(t, err)
+	assert.Equal(t, received.Error.Code, NIP_47_ERROR_RESTRICTED)
+	assert.NotNil(t, res)
 }
 
 func createTestService(t *testing.T) (svc *Service, ln *MockLn) {
 	db, err := gorm.Open(sqlite.Open(testDB), &gorm.Config{})
 	assert.NoError(t, err)
-	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
 	assert.NoError(t, err)
 	ln = &MockLn{}
 	sk := nostr.GeneratePrivateKey()
