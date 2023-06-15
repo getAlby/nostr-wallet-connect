@@ -3,7 +3,7 @@
 <div
   class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
 >
-  <h2 class="font-bold text-2xl font-headline mb-4">
+  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
     {{if .Name}}
       Connect to {{.Name}}
     {{else}}
@@ -45,10 +45,10 @@
             id="name"
             required
             autocomplete="off"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
           />
           <p
-            class="mb-6 text-sm text-gray-500 dark:text-gray-400"
+            class="mt-2 mb-6 text-sm text-gray-500 dark:text-gray-400"
           >
             Give your connection a name to easily identify it.
           </p>
@@ -58,7 +58,7 @@
       {{end}}
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
         <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the expiry date.</p>
@@ -78,13 +78,13 @@
             id="ExpiresAt"
             autocomplete="off"
             min=""
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:[color-scheme:dark]"
           />
         </div>
       </div>
 
       <p class="text-gray-500 dark:text-gray-400 mb-1">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-100 border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" >
+        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700" >
         <label for="BudgetCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
@@ -95,7 +95,7 @@
             Budget Amount (in sats)
           </label>
           <input {{if .Disabled}}tabIndex="-1"{{end}} type="number" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
             pattern="{0-9}.*"
             value={{.MaxAmount}}>
         </div>
