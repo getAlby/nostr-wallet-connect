@@ -8,6 +8,7 @@ const (
 type Config struct {
 	NostrSecretKey          string `envconfig:"NOSTR_PRIVKEY"`
 	CookieSecret            string `envconfig:"COOKIE_SECRET" required:"true"`
+	CookieDomain            string `envconfig:"COOKIE_DOMAIN"`
 	ClientPubkey            string `envconfig:"CLIENT_NOSTR_PUBKEY"`
 	Relay                   string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	LNBackendType           string `envconfig:"LN_BACKEND_TYPE" default:"ALBY"`

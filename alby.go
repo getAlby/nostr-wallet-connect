@@ -201,6 +201,9 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	svc.db.Save(&user)
 
 	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	if svc.cfg.CookieDomain != "" {
+		sess.Options.Domain = svc.cfg.CookieDomain
+	}
 	sess.Values["user_id"] = user.ID
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/hex"
+
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
