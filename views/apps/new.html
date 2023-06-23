@@ -18,51 +18,154 @@
 </a>
 
 <div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10"
+  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
 >
-  <h2 class="font-bold text-2xl font-headline mb-2">
-    Create a new app connection
+  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
+    {{if .Name}}
+      Connect to {{.Name}}
+    {{else}}
+      Create a new app connection
+    {{end}}
   </h2>
 
-  <p class="mb-4">Authorize the new app to:</p>
+  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
 
-  <ul class="mb-8">
-    <li class="mb-2 relative pl-6">
-      <span class="mr-3 absolute left-0">&#9989;</span>
+  <ul class="mb-6">
+    <li class="flex items-center mb-2 relative pl-6 text-sm text-gray-500 dark:text-gray-400">
+      <span class="text-lg absolute left-0 text-green-500">✓</span>
       Send payments from your wallet
     </li>
   </ul>
 
+  {{ if .Disabled }}
+  <p class="text-blue-700 bg-blue-50 p-3 mb-6">
+    💡 This app connection has preconfigured settings and cannot be edited.
+  </p>
+  {{ end }}
+  
   <form method="POST" action="/apps" accept-charset="UTF-8">
-    <div class="mb-10">
-      <label
-        for="name"
-        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-        >App name</label
-      >
-      <input
-        type="name"
-        name="name"
-        value="{{.Name}}"
-        id="name"
-        required
-        autocomplete="off"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-      />
+    <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
+      <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
+      <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
+      {{ if eq .Name "" }}
+        <div class="mb-4">
+          <label
+            for="name"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Connection name</label
+          >
+          <input
+            {{if .Disabled}}tabIndex="-1"{{end}}
+            type="text"
+            name="name"
+            value="{{.Name}}"
+            id="name"
+            required
+            autocomplete="off"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          />
+          <p
+            class="mt-2 mb-6 text-sm text-gray-500 dark:text-gray-400"
+          >
+            Give your connection a name to easily identify it.
+          </p>
+        </div>
+      {{ else }}
+        <input type="hidden" name="name" value="{{.Name}}" id="name" />
+      {{end}}
+
+      <p class="text-gray-500 dark:text-gray-400 mb-1">
+        <input {{if .Disabled}}tabIndex="-1"{{end}} id="ExpiryCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+        <label for="ExpiryCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set an expiry date</label>
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app connection will be cancelled after the expiry date.</p>
+      <div id="ExpiryOptions" class="hidden my-4">
+        <div class="mb-6">
+          <label
+            for="ExpiresAt"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >
+            Expiry
+          </label>
+          <input
+            {{if .Disabled}}tabIndex="-1"{{end}}
+            type="date"
+            name="ExpiresAt"
+            value="{{.ExpiresAt}}"
+            id="ExpiresAt"
+            autocomplete="off"
+            min=""
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:[color-scheme:dark]"
+          />
+        </div>
+      </div>
+
+      <p class="text-gray-500 dark:text-gray-400 mb-1">
+        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700" >
+        <label for="BudgetCheckbox" class="ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Set a Budget</label>
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
+
+      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4 mb-6">
+        <div class="mt-4">
+          <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Budget Amount (in sats)
+          </label>
+          <input {{if .Disabled}}tabIndex="-1"{{end}} type="number" name="MaxAmount" id="MaxAmount" aria-describedby="helper-text-explanation"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+            pattern="{0-9}.*"
+            value={{.MaxAmount}}>
+        </div>
+        <div class="mt-4">
+          <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Budget Renewal
+          </p>
+          <ul class="items-center w-full sm:flex">
+            <li class="w-full">
+              <div class="flex items-center pl-3">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if or (eq .BudgetRenewal "") (eq .BudgetRenewal "never") }}checked{{end}} id="BudgetRenewalNever" type="radio" value="never" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="BudgetRenewalNever" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Never</label>
+              </div>
+            </li>
+            <li class="w-full">
+              <div class="flex items-center pl-3">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "daily" }}checked{{end}} id="BudgetRenewalDaily" type="radio" value="daily" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="BudgetRenewalDaily" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Daily</label>
+              </div>
+            </li>
+            <li class="w-full">
+              <div class="flex items-center pl-3">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "weekly" }}checked{{end}} id="BudgetRenewalWeekly" type="radio" value="weekly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="BudgetRenewalWeekly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Weekly</label>
+              </div>
+            </li>
+            <li class="w-full">
+              <div class="flex items-center pl-3">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "monthly" }}checked{{end}} id="BudgetRenewalMonthly" type="radio" value="monthly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="BudgetRenewalMonthly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Monthly</label>
+              </div>
+            </li>
+            <li class="w-full">
+              <div class="flex items-center pl-3">
+                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if eq .BudgetRenewal "yearly" }}checked{{end}} id="BudgetRenewalYearly" type="radio" value="yearly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="BudgetRenewalYearly" class="w-full py-3 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Yearly</label>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
+    {{ if .Pubkey }}
+      <p class="text-orange-700 bg-orange-50 p-3 mb-6">
+        ⚠️ Only connect with apps you trust!
+      </p>
+    {{ end }}
 
   <div class="mb-4">
     <a href="#" class="underline mb-4"
       onclick="document.getElementById('advanced-settings').classList.toggle('hidden');return false">Advanced
       settings</a>
     <div id="advanced-settings" class="hidden">
-      <!-- <label for="pubkey" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Public key</label>
-      <input type="pubkey" name="pubkey" id="pubkey" aria-describedby="helper-text-explanation"
-        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        placeholder="npub..." pattern="npub.*">
-      <p id="helper-text-explanation" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        Manually configure the public pairing key for this session.
-      </p> -->
     <div id="backendoptions">
         <select name="backend" id="backend" v-model="backend" onchange="showBackendOptions(this)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
           <option value="lnd">LND</option>
@@ -92,26 +195,26 @@
   </div>
 
   <div class="flex flex-col sm:flex-row sm:justify-center">
+    {{ if not .Pubkey }}
     <a
       href="/apps"
-      class="inline-flex bg-white border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+      class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
     >
       Cancel
     </a>
+    {{ end }}
 
     <button
       type="submit"
-      class="inline-flex w-full sm:w-[250px] bg-purple-700 border border-warmGray cursor-pointer dark:bg-surface-02dp dark:border-neutral-800 dark:hover:bg-surface-16dp dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-bitcoin focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
     >
-      Confirm
+    {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
     </button>
     </div>
   </form>
 
   {{if .User.Email}}
-    <hr class="mt-8 mb-4">
-
-    <p class="text-sm text-gray-500 text-center">
+    <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
       You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
     </p>
   {{end}}

@@ -7,14 +7,18 @@ import (
 )
 
 const (
-	NIP_47_INFO_EVENT_KIND       = 13194
-	NIP_47_REQUEST_KIND          = 23194
-	NIP_47_RESPONSE_KIND         = 23195
-	NIP_47_PAY_INVOICE_METHOD    = "pay_invoice"
-	NIP_47_ERROR_INTERNAL        = "INTERNAL"
-	NIP_47_ERROR_NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
-	NIP_47_ERROR_UNAUTHORIZED    = "UNAUTHORIZED"
-	NIP_47_CAPABILITIES          = "pay_invoice"
+	NIP_47_INFO_EVENT_KIND            = 13194
+	NIP_47_REQUEST_KIND               = 23194
+	NIP_47_RESPONSE_KIND              = 23195
+	NIP_47_PAY_INVOICE_METHOD         = "pay_invoice"
+	NIP_47_ERROR_INTERNAL             = "INTERNAL"
+	NIP_47_ERROR_NOT_IMPLEMENTED      = "NOT_IMPLEMENTED"
+	NIP_47_ERROR_QUOTA_EXCEEDED       = "QUOTA_EXCEEDED"
+	NIP_47_ERROR_INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE"
+	NIP_47_ERROR_UNAUTHORIZED         = "UNAUTHORIZED"
+	NIP_47_ERROR_EXPIRED              = "EXPIRED"
+	NIP_47_ERROR_RESTRICTED           = "RESTRICTED"
+	NIP_47_CAPABILITIES               = "pay_invoice"
 )
 
 type AlbyMe struct {
@@ -25,15 +29,16 @@ type AlbyMe struct {
 }
 
 type User struct {
-	ID             uint   `gorm:"primaryKey"`
-	AlbyIdentifier string `gorm:"uniqueIndex" validate:"required"`
-	AccessToken    string `validate:"required"`
-	RefreshToken   string `validate:"required"`
-	Email          string
-	Expiry         time.Time
-	Apps           []App
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID               uint   `gorm:"primaryKey"`
+	AlbyIdentifier   string `gorm:"uniqueIndex" validate:"required"`
+	AccessToken      string `validate:"required"`
+	RefreshToken     string `validate:"required"`
+	Email            string
+	Expiry           time.Time
+	LightningAddress string
+	Apps             []App
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type App struct {
@@ -48,6 +53,18 @@ type App struct {
 	Backend                  string
 	BackendOptionsLNBitsKey  string
 	BackendOptionsLNBitsHost string
+}
+
+type AppPermission struct {
+	ID                      uint `gorm:"primaryKey"`
+	AppId                   uint `gorm:"index" validate:"required"`
+	App                     App  `gorm:"constraint:OnDelete:CASCADE"`
+	RequestMethod           string  `gorm:"index" validate:"required"`
+	MaxAmount               int
+	BudgetRenewal           string
+	ExpiresAt               time.Time
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
 }
 
 type NostrEvent struct {
@@ -84,6 +101,13 @@ type PayResponse struct {
 	Preimage    string `json:"payment_preimage"`
 	PaymentHash string `json:"payment_hash"`
 }
+
+type ErrorResponse struct {
+	Error   bool   `json:"error"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 type Identity struct {
 	gorm.Model
 	Privkey string

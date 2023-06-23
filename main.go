@@ -45,10 +45,19 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to open DB %v", err)
 		}
+		// Override SQLite config to max one connection
+		cfg.DatabaseMaxConns = 1
 	}
+	sqlDb, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed set DB config: %v", err)
+	}
+	sqlDb.SetMaxOpenConns(cfg.DatabaseMaxConns)
+	sqlDb.SetMaxIdleConns(cfg.DatabaseMaxIdleConns)
+	sqlDb.SetConnMaxLifetime(time.Duration(cfg.DatabaseConnMaxLifetime) * time.Second)
 
 	// Migrate the schema
-	err = db.AutoMigrate(&User{}, &App{}, &NostrEvent{}, &Payment{}, &Identity{})
+	err = db.AutoMigrate(&User{}, &App{}, &AppPermission{}, &NostrEvent{}, &Payment{}, &Identity{})
 	if err != nil {
 		log.Fatalf("Failed migrate DB %v", err)
 	}
