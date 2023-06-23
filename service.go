@@ -72,16 +72,19 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 						svc.Logger.Error(result.Error)
 						return
 					}
-					nostrEvent.State = "replied" // TODO: check if publish was successful
-					nostrEvent.ReplyId = resp.ID
-					svc.db.Save(&nostrEvent)
-					svc.Logger.WithFields(logrus.Fields{
-						"nostrEventId": nostrEvent.ID,
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-						"appId":        nostrEvent.AppId,
-					}).Info("Published reply")
+					if status == nostr.PublishStatusSucceeded {
+						nostrEvent.State = "replied"
+						nostrEvent.RepliedAt = time.Now()
+						nostrEvent.ReplyId = resp.ID
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Published reply")
+					}
 				}
 			}()
 		}
