@@ -262,18 +262,10 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return c.Redirect(302, "/apps")
 		}
 	}
-	app := App{Name: name, NostrPubkey: pairingPublicKey}
-	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
-	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
-	if !expiresAt.IsZero() {
-		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
-	}
 
 	backend := "alby"
 	var lnbitsadminkey = ""
 	var lnbitshost = ""
-
 	if svc.cfg.LNBackendType != AlbyBackendType {
 		backend = "lnd"
 		if c.FormValue("backend") != "" {
@@ -288,6 +280,15 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 				lnbitshost = c.FormValue("lnbitshost")
 			}
 		}
+	}
+
+	app := App{Name: name, NostrPubkey: pairingPublicKey, Backend: backend, BackendOptionsLNBitsKey: lnbitsadminkey, BackendOptionsLNBitsHost: lnbitshost}
+
+	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
+	budgetRenewal := c.FormValue("BudgetRenewal")
+	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+	if !expiresAt.IsZero() {
+		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
@@ -348,6 +349,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 		"PairingSecret": pairingSecretKey,
 		"Pubkey":        pairingPublicKey,
 		"Name":          name,
+		"Backend":       svc.cfg.LNBackendType,
 	})
 }
 
