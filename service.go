@@ -73,6 +73,7 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 						return
 					}
 					nostrEvent.ReplyId = resp.ID
+					// https://github.com/nbd-wtf/go-nostr/blob/master/relay.go#L321
 					if status == nostr.PublishStatusSucceeded {
 						nostrEvent.State = "replied"
 						nostrEvent.RepliedAt = time.Now()
