@@ -72,16 +72,40 @@ func (svc *Service) StartSubscription(ctx context.Context, sub *nostr.Subscripti
 						svc.Logger.Error(result.Error)
 						return
 					}
-					nostrEvent.State = "replied" // TODO: check if publish was successful
 					nostrEvent.ReplyId = resp.ID
-					svc.db.Save(&nostrEvent)
-					svc.Logger.WithFields(logrus.Fields{
-						"nostrEventId": nostrEvent.ID,
-						"eventId":      event.ID,
-						"status":       status,
-						"replyEventId": resp.ID,
-						"appId":        nostrEvent.AppId,
-					}).Info("Published reply")
+					// https://github.com/nbd-wtf/go-nostr/blob/master/relay.go#L321
+					if status == nostr.PublishStatusSucceeded {
+						nostrEvent.State = "replied"
+						nostrEvent.RepliedAt = time.Now()
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Published reply")
+					} else if status == nostr.PublishStatusFailed {
+						nostrEvent.State = "failed"
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Failed to publish reply")
+					} else {
+						nostrEvent.State = "sent"
+						svc.db.Save(&nostrEvent)
+						svc.Logger.WithFields(logrus.Fields{
+							"nostrEventId": nostrEvent.ID,
+							"eventId":      event.ID,
+							"status":       status,
+							"replyEventId": resp.ID,
+							"appId":        nostrEvent.AppId,
+						}).Info("Reply sent but no response from relay (timeout)")
+					}
 				}
 			}()
 		}
