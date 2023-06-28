@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -150,11 +149,12 @@ func (svc *AlbyOAuthService) SendPaymentSync(ctx context.Context, senderPubkey, 
 
 func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	// clear current session
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess, _ := session.Get("nwc_session", c)
 	sess.Values["user_id"] = ""
 	delete(sess.Values, "user_id")
-	sess.Options = &sessions.Options{
-		MaxAge: -1,
+	sess.Options.MaxAge = -1
+	if svc.cfg.CookieDomain != "" {
+		sess.Options.Domain = svc.cfg.CookieDomain
 	}
 	sess.Save(c.Request(), c.Response())
 
@@ -200,7 +200,8 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 	user.LightningAddress = me.LightningAddress
 	svc.db.Save(&user)
 
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess, _ := session.Get("nwc_session", c)
+	sess.Options.MaxAge = 0
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
