@@ -81,7 +81,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
+	sess, _ := session.Get("nwc_session", c)
 	returnTo := sess.Values["return_to"]
 	user, err := svc.GetUser(c)
 	if err != nil {
@@ -219,7 +219,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		sess, _ := session.Get("alby_nostr_wallet_connect", c)
+		sess, _ := session.Get("nwc_session", c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Save(c.Request(), c.Response())
 		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
@@ -346,9 +346,10 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nostr_wallet_connect", c)
-	sess.Options = &sessions.Options{
-		MaxAge: -1,
+	sess, _ := session.Get("nwc_session", c)
+	sess.Options.MaxAge = -1
+	if svc.cfg.CookieDomain != "" {
+		sess.Options.Domain = svc.cfg.CookieDomain
 	}
 	sess.Save(c.Request(), c.Response())
 	return c.Redirect(302, "/")
