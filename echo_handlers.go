@@ -214,7 +214,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY
+	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
+	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
+    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format("2006-01-02")
+	}
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 
