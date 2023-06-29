@@ -16,7 +16,6 @@ import (
 )
 
 const testDB = "test.db"
-const testInvoice = "lntb1230n1pjypux0pp5xgxzcks5jtx06k784f9dndjh664wc08ucrganpqn52d0ftrh9n8sdqyw3jscqzpgxqyz5vqsp5rkx7cq252p3frx8ytjpzc55rkgyx2mfkzzraa272dqvr2j6leurs9qyyssqhutxa24r5hqxstchz5fxlslawprqjnarjujp5sm3xj7ex73s32sn54fthv2aqlhp76qmvrlvxppx9skd3r5ut5xutgrup8zuc6ay73gqmra29m"
 
 const nip47PayJson = `
 {
@@ -62,7 +61,7 @@ func TestHandleEvent(t *testing.T) {
 	//test lnbc.. payload without having an app registered
 	ss, err := nip04.ComputeSharedSecret(svc.cfg.IdentityPubkey, senderPrivkey)
 	assert.NoError(t, err)
-	payload, err := nip04.Encrypt(testInvoice, ss)
+	payload, err := nip04.Encrypt(nip47PayJson, ss)
 	assert.NoError(t, err)
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
 		ID:      "test_event_1",
@@ -137,14 +136,14 @@ func TestHandleEvent(t *testing.T) {
 	//add app permissions
 	maxAmount := 1000
 	budgetRenewal := "never"
-	expiresAt := time.Now().Add(24 * time.Hour);
+	expiresAt := time.Now().Add(24 * time.Hour)
 	appPermission := &AppPermission{
-		AppId:                   app.ID,
-		App:                     app,
-		RequestMethod:           NIP_47_PAY_INVOICE_METHOD,
-		MaxAmount:               maxAmount,
-		BudgetRenewal:           budgetRenewal,
-		ExpiresAt:               expiresAt,
+		AppId:         app.ID,
+		App:           app,
+		RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+		MaxAmount:     maxAmount,
+		BudgetRenewal: budgetRenewal,
+		ExpiresAt:     expiresAt,
 	}
 	err = svc.db.Create(appPermission).Error
 	assert.NoError(t, err)
@@ -186,7 +185,7 @@ func TestHandleEvent(t *testing.T) {
 	assert.Equal(t, received.Error.Code, NIP_47_ERROR_QUOTA_EXCEEDED)
 	assert.NotNil(t, res)
 	// permissions: expired app
-	newExpiry := time.Now().Add(-24 * time.Hour);
+	newExpiry := time.Now().Add(-24 * time.Hour)
 	err = svc.db.Model(&AppPermission{}).Where("app_id = ?", app.ID).Update("expires_at", newExpiry).Error
 
 	res, err = svc.HandleEvent(ctx, &nostr.Event{
