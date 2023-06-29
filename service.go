@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -183,29 +182,21 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 	}
 
 	var bolt11 string
-	var requestMethod string
-	if strings.HasPrefix(payload, "ln") {
-		//legacy
-		bolt11 = payload
-		requestMethod = NIP_47_PAY_INVOICE_METHOD
-	} else {
-		payParams := &Nip47PayParams{}
-		nip47Request := &Nip47Request{
-			Params: payParams,
-		}
-		err = json.Unmarshal([]byte(payload), nip47Request)
-		if err != nil {
-			return nil, err
-		}
-		requestMethod = nip47Request.Method
-		if requestMethod != NIP_47_PAY_INVOICE_METHOD {
-			return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
-				Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
-				Message: fmt.Sprintf("Unknown method: %s", requestMethod),
-			}}, ss)
-		}
-		bolt11 = payParams.Invoice
+	payParams := &Nip47PayParams{}
+	nip47Request := &Nip47Request{
+		Params: payParams,
 	}
+	err = json.Unmarshal([]byte(payload), nip47Request)
+	if err != nil {
+		return nil, err
+	}
+	if nip47Request.Method != NIP_47_PAY_INVOICE_METHOD {
+		return svc.createResponse(event, Nip47Response{Error: &Nip47Error{
+			Code:    NIP_47_ERROR_NOT_IMPLEMENTED,
+			Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
+		}}, ss)
+	}
+	bolt11 = payParams.Invoice
 	paymentRequest, err := decodepay.Decodepay(bolt11)
 	if err != nil {
 		svc.Logger.WithFields(logrus.Fields{
@@ -218,9 +209,9 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, err
 	}
 
-	hasPermission, code, message := svc.hasPermission(&app, event, requestMethod, &paymentRequest)
-	
-	if (!hasPermission) {
+	hasPermission, code, message := svc.hasPermission(&app, event, nip47Request.Method, &paymentRequest)
+
+	if !hasPermission {
 		svc.Logger.WithFields(logrus.Fields{
 			"eventId":   event.ID,
 			"eventKind": event.Kind,
@@ -342,7 +333,7 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 	// find all permissions for the app
 	appPermissions := []AppPermission{}
 	findPermissionsResult := svc.db.Find(&appPermissions, &AppPermission{
-		AppId:     app.ID,
+		AppId: app.ID,
 	})
 	if findPermissionsResult.RowsAffected == 0 {
 		// No permissions created for this app. It can do anything
@@ -363,12 +354,12 @@ func (svc *Service) hasPermission(app *App, event *nostr.Event, requestMethod st
 		svc.Logger.Info("This pubkey is expired")
 		return false, NIP_47_ERROR_EXPIRED, "This app has expired"
 	}
-	
+
 	maxAmount := appPermission.MaxAmount
 	if maxAmount != 0 {
 		budgetUsage := svc.GetBudgetUsage(&appPermission)
-		
-		if budgetUsage +paymentRequest.MSatoshi/1000 > int64(maxAmount) {
+
+		if budgetUsage+paymentRequest.MSatoshi/1000 > int64(maxAmount) {
 			return false, NIP_47_ERROR_QUOTA_EXCEEDED, "Insufficient budget remaining to make payment"
 		}
 	}
