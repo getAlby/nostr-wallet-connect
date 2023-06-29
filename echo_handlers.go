@@ -81,7 +81,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 }
 
 func (svc *Service) IndexHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	returnTo := sess.Values["return_to"]
 	user, err := svc.GetUser(c)
 	if err != nil {
@@ -223,7 +223,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		return err
 	}
 	if user == nil {
-		sess, _ := session.Get("alby_nwc_session", c)
+		sess, _ := session.Get(CookieName, c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Options.MaxAge = 0
 		if svc.cfg.CookieDomain != "" {
@@ -354,7 +354,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 }
 
 func (svc *Service) LogoutHandler(c echo.Context) error {
-	sess, _ := session.Get("alby_nwc_session", c)
+	sess, _ := session.Get(CookieName, c)
 	sess.Options.MaxAge = -1
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain
