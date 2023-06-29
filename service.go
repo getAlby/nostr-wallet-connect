@@ -25,7 +25,7 @@ type Service struct {
 }
 
 func (svc *Service) GetUser(c echo.Context) (user *User, err error) {
-	sess, _ := session.Get("nwc_session", c)
+	sess, _ := session.Get("alby_nwc_session", c)
 	userID := sess.Values["user_id"]
 	if svc.cfg.LNBackendType == LNDBackendType {
 		//if we self-host, there is always only one user
