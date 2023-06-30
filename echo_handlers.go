@@ -64,6 +64,9 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+    TokenLookup: "form:_csrf",
+	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
 
@@ -90,6 +93,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil && returnTo != nil {
 		delete(sess.Values, "return_to")
 		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
 		if svc.cfg.CookieDomain != "" {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
@@ -143,6 +147,7 @@ func (svc *Service) AppsListHandler(c echo.Context) error {
 }
 
 func (svc *Service) AppsShowHandler(c echo.Context) error {
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 	user, err := svc.GetUser(c)
 	if err != nil {
 		return err
@@ -179,6 +184,7 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 		"EventsCount":   eventsCount,
 		"BudgetUsage":   budgetUsage,
 		"RenewsIn":      renewsIn,
+		"Csrf":          csrf,
 	})
 }
 
@@ -217,6 +223,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
+	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
 	user, err := svc.GetUser(c)
 	if err != nil {
@@ -226,6 +233,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess, _ := session.Get(CookieName, c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
 		if svc.cfg.CookieDomain != "" {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
@@ -243,6 +251,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"ExpiresAt":     expiresAt,
 		"BudgetEnabled": budgetEnabled,
 		"Disabled":      disabled,
+		"Csrf":          csrf,
 	})
 }
 

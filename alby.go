@@ -153,6 +153,7 @@ func (svc *AlbyOAuthService) AuthHandler(c echo.Context) error {
 	if (sess.Values["user_id"] != nil) {
 		delete(sess.Values, "user_id")
 		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
 		if svc.cfg.CookieDomain != "" {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
@@ -203,6 +204,7 @@ func (svc *AlbyOAuthService) CallbackHandler(c echo.Context) error {
 
 	sess, _ := session.Get(CookieName, c)
 	sess.Options.MaxAge = 0
+	sess.Options.SameSite = http.SameSiteLaxMode
 	if svc.cfg.CookieDomain != "" {
 		sess.Options.Domain = svc.cfg.CookieDomain
 	}
