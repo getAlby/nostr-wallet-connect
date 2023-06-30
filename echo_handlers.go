@@ -93,6 +93,7 @@ func (svc *Service) IndexHandler(c echo.Context) error {
 	if user != nil && returnTo != nil {
 		delete(sess.Values, "return_to")
 		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
 		if svc.cfg.CookieDomain != "" {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
@@ -232,6 +233,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		sess, _ := session.Get(CookieName, c)
 		sess.Values["return_to"] = c.Path() + "?" + c.QueryString()
 		sess.Options.MaxAge = 0
+		sess.Options.SameSite = http.SameSiteLaxMode
 		if svc.cfg.CookieDomain != "" {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
