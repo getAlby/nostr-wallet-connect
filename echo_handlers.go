@@ -220,7 +220,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	returnTo := c.QueryParam("return_to")
 	maxAmount := c.QueryParam("max_amount")
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY
+	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
+	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
+    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+	}
 	disabled := c.QueryParam("editable") == "false"
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
@@ -282,7 +285,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
+	expiresAt, _ := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
