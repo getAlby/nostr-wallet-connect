@@ -341,7 +341,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	if user.LightningAddress != "" {
 		lud16 = fmt.Sprintf("&lud16=%s", user.LightningAddress)
 	}
-	pairingUri := template.URL(fmt.Sprintf("nostrwalletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
+	pairingUri := template.URL(fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", svc.cfg.IdentityPubkey, svc.cfg.Relay, pairingSecretKey, lud16))
 	return c.Render(http.StatusOK, "apps/create.html", map[string]interface{}{
 		"User":          user,
 		"PairingUri":    pairingUri,
