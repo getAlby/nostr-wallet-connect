@@ -92,23 +92,16 @@
 <script type="text/javascript">
   // notify the opener if present of the success full connect
   window.addEventListener("load", (event) => {
-    
-    // if there is no opener we redirect to the protocol link
-    // this fails if the user does not support it and the user sees the normal
-    if (!window.opener) {
-      // delay execution a bit to make sure the page can finish loading
-      setTimeout(function () {
-        document.location = "{{.PairingUri}}";
-      }, 250);
-      return;
+
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "nwc:success",
+          payload: {success: true},
+        },
+        "*"
+      );
     }
-    window.opener.postMessage(
-      {
-        type: "nwc:success",
-        payload: { success: true },
-      },
-      "*"
-    );
   });
 
   window.addEventListener("DOMContentLoaded", (event) => {
