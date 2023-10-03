@@ -33,7 +33,12 @@ As data storage SQLite or PostgreSQL (recommended) can be used.
 
 To build the CSS run:
 
-`npx tailwindcss -i ./views/application.css -o ./public/css/application.css --watch`
+1. `npm install`
+2. `npm run css`
+
+### Testing
+
+`go test`
 
 ## Configuration parameters
 
@@ -71,7 +76,7 @@ Example:
 #### Client created secret
 If the client creates the secret the client only needs to share the public key of that secret for authorization. The user authorized that pubkey and no sensitivate data needs to be shared.
 
-##### Query parameter options
+##### Query parameter options for /new
 - `c`: the name of the client app
 - `pubkey`: the public key of the client's secret for the user to authorize
 - `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization. The `lud16`, `relay` and `pubkey` query parameters will be added to the URL.
@@ -79,6 +84,7 @@ If the client creates the secret the client only needs to share the public key o
 - `max_amount` (optional) maximum amount in sats that can be sent per renewal period
 - `budget_renewal` (optional) reset the budget at the end of the given budget renewal. Can be `never` (default), `daily`, `weekly`, `monthly`, `yearly`
 - `editable` (optional) set to `false` to disable form editing by the user
+- `request_methods` (optional) url encoded, space separated list of request types that you need permission for: `pay_invoice` (default), `get_balance`  (see NIP47). For example: `..&request_methods=pay_invoice%20get_balance`
 
 Example:
 
@@ -101,7 +107,8 @@ await nwc.initNWC({name: 'myapp'});
 
 ## Help
 
-If you need help contact hello@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
+If you need help contact support@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
+You can also visit the chat of our Community on [Telegram](https://t.me/getalby).
 
 
 ## ⚡️Donations

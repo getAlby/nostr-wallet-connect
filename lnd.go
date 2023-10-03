@@ -3,18 +3,23 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"errors"
+
+	"github.com/getAlby/nostr-wallet-connect/lnd"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/getAlby/lndhub.go/lnd"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/lightningnetwork/lnd/lnrpc"
 )
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error)
+	SendPaymentSync(ctx context.Context, senderPubkey string, payReq string) (preimage string, err error)
+	GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error)
+	MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error)
+	LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error)
 }
 
 // wrap it again :sweat_smile:
@@ -38,6 +43,58 @@ func (svc *LNDService) AuthHandler(c echo.Context) error {
 	return c.Redirect(302, "/")
 }
 
+func (svc *LNDService) GetBalance(ctx context.Context, senderPubkey string) (balance int64, err error) {
+	resp, err := svc.client.ChannelBalance(ctx, &lnrpc.ChannelBalanceRequest{})
+	if err != nil {
+		return 0, err
+	}
+	return int64(resp.LocalBalance.Sat), nil
+}
+
+func (svc *LNDService) MakeInvoice(ctx context.Context, senderPubkey string, amount int64, description string, descriptionHash string, expiry int64) (invoice string, paymentHash string, err error) {
+	var descriptionHashBytes []byte
+	
+	if descriptionHash != "" {
+		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
+
+		if err != nil || len(descriptionHashBytes) != 32 {
+			svc.Logger.WithFields(logrus.Fields{
+				"senderPubkey":    senderPubkey,
+				"amount":          amount,
+				"description":     description,
+				"descriptionHash": descriptionHash,
+				"expiry":          expiry,
+			}).Errorf("Invalid description hash")
+			return "", "", errors.New("Description hash must be 32 bytes hex")
+		}
+	}
+	
+	resp, err := svc.client.AddInvoice(ctx, &lnrpc.Invoice{ValueMsat: amount, Memo: description, DescriptionHash: descriptionHashBytes, Expiry: expiry})
+	if err != nil {
+		return "", "", err
+	}
+
+	return resp.GetPaymentRequest(), hex.EncodeToString(resp.GetRHash()), nil
+}
+
+func (svc *LNDService) LookupInvoice(ctx context.Context, senderPubkey string, paymentHash string) (invoice string, paid bool, err error) {
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+
+	if err != nil || len(paymentHashBytes) != 32 {
+		svc.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).Errorf("Invalid payment hash")
+		return "", false, errors.New("Payment hash must be 32 bytes hex")
+	}
+
+	lndInvoice, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{ RHash: paymentHashBytes })
+	if err != nil {
+		return "", false, err
+	}
+	
+	return lndInvoice.PaymentRequest, lndInvoice.State == *lnrpc.Invoice_SETTLED.Enum(), nil;
+}
+
 func (svc *LNDService) SendPaymentSync(ctx context.Context, senderPubkey, payReq string) (preimage string, err error) {
 	resp, err := svc.client.SendPaymentSync(ctx, &lnrpc.SendRequest{PaymentRequest: payReq})
 	if err != nil {
@@ -51,7 +108,7 @@ func NewLNDService(ctx context.Context, svc *Service, e *echo.Echo) (result *LND
 		Address:      svc.cfg.LNDAddress,
 		CertFile:     svc.cfg.LNDCertFile,
 		MacaroonFile: svc.cfg.LNDMacaroonFile,
-	})
+	}, ctx)
 	if err != nil {
 		return nil, err
 	}

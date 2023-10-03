@@ -11,14 +11,23 @@
     {{end}}
   </h2>
 
-  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white">Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
+  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white"></p>
 
-  <ul class="mb-6">
-    <li class="flex items-center mb-2 relative pl-6 text-sm text-gray-500 dark:text-gray-400">
-      <span class="text-lg absolute left-0 text-green-500">✓</span>
-      Send payments from your wallet
-    </li>
-  </ul>
+  <div id="RequestMethodOptions" class=" mt-4">
+    <div class="mb-6">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"> Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
+      <ul class="items-center w-full sm:flex">
+        {{range $key, $value := .RequestMethodHelper}}
+        <li class="w-full">
+          <div class="flex items-center pl-3">
+            <input {{if  $value.Checked }} checked {{end}} id="{{$key}}-id" type="checkbox" value="{{ $key }}" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+            <label for="{{$key}}-id" class="ml-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ $value.Description}}</label>
+          </div>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+  </div>
 
   {{ if .Disabled }}
   <p class="text-blue-700 bg-blue-50 p-3 mb-6">
@@ -31,6 +40,7 @@
       <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
+      <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
       {{ if eq .Name "" }}
         <div class="mb-4">
           <label
@@ -90,7 +100,7 @@
       </p>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">If set, app will be restricted to send payments only within a chosen budget range (Routing fees not included).</p>
 
-      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4 mb-6">
+      <div id="BudgetOptions" class="{{if not .MaxAmount}}hidden{{end}} mt-4">
         <div class="mt-4">
           <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Budget Amount (in sats)
@@ -138,6 +148,7 @@
           </ul>
         </div>
       </div>
+
     </div>
     {{ if .Pubkey }}
       <p class="text-orange-700 bg-orange-50 p-3 mb-6">
@@ -213,5 +224,18 @@
       budgetOptions.classList.remove("hidden");
     }
   });
+
+  const requestMethodCheckboxes = document.getElementById("RequestMethodOptions").querySelectorAll("input[type=checkbox]");
+  requestMethodCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener("change", function(e) {
+      let checkedValues = "";
+      requestMethodCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+          checkedValues += checkbox.value + " ";
+        }
+      });
+      document.getElementById("RequestMethods").value = checkedValues.trim();
+    })
+  })
 </script>
 {{end}}

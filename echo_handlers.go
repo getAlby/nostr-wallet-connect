@@ -54,18 +54,18 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
 	templates["about.html"] = template.Must(template.ParseFS(embeddedViews, "views/about.html", "views/layout.html"))
+	templates["404.html"] = template.Must(template.ParseFS(embeddedViews, "views/404.html", "views/layout.html"))
 	templates["lnd/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/lnd/index.html", "views/layout.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
 	e.HideBanner = true
-	e.Logger = echologrus.GetEchoLogger()
 	e.Use(echologrus.Middleware())
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-    TokenLookup: "form:_csrf",
+		TokenLookup: "form:_csrf",
 	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(svc.cfg.CookieSecret))))
 	e.Use(ddEcho.Middleware(ddEcho.WithServiceName("nostr-wallet-connect")))
@@ -75,9 +75,9 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/public/*", echo.WrapHandler(http.StripPrefix("/public/", assetHandler)))
 	e.GET("/apps", svc.AppsListHandler)
 	e.GET("/apps/new", svc.AppsNewHandler)
-	e.GET("/apps/:id", svc.AppsShowHandler)
+	e.GET("/apps/:pubkey", svc.AppsShowHandler)
 	e.POST("/apps", svc.AppsCreateHandler)
-	e.POST("/apps/delete/:id", svc.AppsDeleteHandler)
+	e.POST("/apps/delete/:pubkey", svc.AppsDeleteHandler)
 	e.GET("/logout", svc.LogoutHandler)
 	e.GET("/about", svc.AboutHandler)
 	e.GET("/", svc.IndexHandler)
@@ -157,34 +157,56 @@ func (svc *Service) AppsShowHandler(c echo.Context) error {
 	}
 
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
+
+	if app.NostrPubkey == "" {
+		return c.Render(http.StatusNotFound, "404.html", map[string]interface{}{
+			"User": user,
+		})
+	}
+
 	lastEvent := NostrEvent{}
 	svc.db.Where("app_id = ?", app.ID).Order("id desc").Limit(1).Find(&lastEvent)
 	var eventsCount int64
 	svc.db.Model(&NostrEvent{}).Where("app_id = ?", app.ID).Count(&eventsCount)
 
-	appPermission := AppPermission{}
-	svc.db.Where("app_id = ? AND request_method = ?", app.ID, NIP_47_PAY_INVOICE_METHOD).First(&appPermission)
+	paySpecificPermission := AppPermission{}
+	appPermissions := []AppPermission{}
+	expiresAt := time.Time{}
+	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
+
+	requestMethods := []string{}
+	for _, appPerm := range appPermissions {
+		if expiresAt.IsZero() && !appPerm.ExpiresAt.IsZero() {
+			expiresAt = appPerm.ExpiresAt
+		}
+		if appPerm.RequestMethod == NIP_47_PAY_INVOICE_METHOD {
+			//find the pay_invoice-specific permissions
+			paySpecificPermission = appPerm
+		}
+		requestMethods = append(requestMethods, nip47MethodDescriptions[appPerm.RequestMethod])
+	}
 
 	renewsIn := ""
 	budgetUsage := int64(0)
-	maxAmount := appPermission.MaxAmount
+	maxAmount := paySpecificPermission.MaxAmount
 	if maxAmount > 0 {
-		budgetUsage = svc.GetBudgetUsage(&appPermission)
-		endOfBudget := GetEndOfBudget(appPermission.BudgetRenewal, app.CreatedAt)
+		budgetUsage = svc.GetBudgetUsage(&paySpecificPermission)
+		endOfBudget := GetEndOfBudget(paySpecificPermission.BudgetRenewal, app.CreatedAt)
 		renewsIn = getEndOfBudgetString(endOfBudget)
-
 	}
 
 	return c.Render(http.StatusOK, "apps/show.html", map[string]interface{}{
-		"App":           app,
-		"AppPermission": appPermission,
-		"User":          user,
-		"LastEvent":     lastEvent,
-		"EventsCount":   eventsCount,
-		"BudgetUsage":   budgetUsage,
-		"RenewsIn":      renewsIn,
-		"Csrf":          csrf,
+		"App":                   app,
+		"PaySpecificPermission": paySpecificPermission,
+		"RequestMethods":        requestMethods,
+		"ExpiresAt":             expiresAt,
+		"User":                  user,
+		"LastEvent":             lastEvent,
+		"EventsCount":           eventsCount,
+		"BudgetUsage":           budgetUsage,
+		"RenewsIn":              renewsIn,
+		"Csrf":                  csrf,
 	})
 }
 
@@ -222,9 +244,19 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
 	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
 	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-    expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
 	}
 	disabled := c.QueryParam("editable") == "false"
+	requestMethods := c.QueryParam("request_methods")
+	if requestMethods == "" {
+		// if no request methods are given, enable them all by default
+		keys := []string{}
+		for key := range nip47MethodDescriptions {
+			keys = append(keys, key)
+		}
+
+		requestMethods = strings.Join(keys, " ")
+	}
 	budgetEnabled := maxAmount != "" || budgetRenewal != ""
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
@@ -241,20 +273,42 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 			sess.Options.Domain = svc.cfg.CookieDomain
 		}
 		sess.Save(c.Request(), c.Response())
-		return c.Redirect(302, fmt.Sprintf("/%s/auth", strings.ToLower(svc.cfg.LNBackendType)))
+		return c.Redirect(302, fmt.Sprintf("/%s/auth?c=%s", strings.ToLower(svc.cfg.LNBackendType), appName))
+	}
+
+	//construction to return a map with all possible permissions
+	//and indicate which ones are checked by default in the front-end
+	type RequestMethodHelper struct {
+		Description string
+		Checked     bool
+	}
+
+	requestMethodHelper := map[string]*RequestMethodHelper{}
+	for k, v := range nip47MethodDescriptions {
+		requestMethodHelper[k] = &RequestMethodHelper{
+			Description: v,
+		}
+	}
+
+	for _, m := range strings.Split(requestMethods, " ") {
+		if _, ok := nip47MethodDescriptions[m]; ok {
+			requestMethodHelper[m].Checked = true
+		}
 	}
 
 	return c.Render(http.StatusOK, "apps/new.html", map[string]interface{}{
-		"User":          user,
-		"Name":          appName,
-		"Pubkey":        pubkey,
-		"ReturnTo":      returnTo,
-		"MaxAmount":     maxAmount,
-		"BudgetRenewal": budgetRenewal,
-		"ExpiresAt":     expiresAt,
-		"BudgetEnabled": budgetEnabled,
-		"Disabled":      disabled,
-		"Csrf":          csrf,
+		"User":                user,
+		"Name":                appName,
+		"Pubkey":              pubkey,
+		"ReturnTo":            returnTo,
+		"MaxAmount":           maxAmount,
+		"BudgetRenewal":       budgetRenewal,
+		"ExpiresAt":           expiresAt,
+		"BudgetEnabled":       budgetEnabled,
+		"RequestMethods":      requestMethods,
+		"RequestMethodHelper": requestMethodHelper,
+		"Disabled":            disabled,
+		"Csrf":                csrf,
 	})
 }
 
@@ -285,7 +339,7 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 	app := App{Name: name, NostrPubkey: pairingPublicKey}
 	maxAmount, _ := strconv.Atoi(c.FormValue("MaxAmount"))
 	budgetRenewal := c.FormValue("BudgetRenewal")
-	expiresAt, _ := time.Parse(time.RFC3339, c.FormValue("ExpiresAt"))
+	expiresAt, _ := time.Parse("2006-01-02", c.FormValue("ExpiresAt"))
 	if !expiresAt.IsZero() {
 		expiresAt = time.Date(expiresAt.Year(), expiresAt.Month(), expiresAt.Day(), 23, 59, 59, 0, expiresAt.Location())
 	}
@@ -296,21 +350,30 @@ func (svc *Service) AppsCreateHandler(c echo.Context) error {
 			return err
 		}
 
-		if maxAmount > 0 || !expiresAt.IsZero() {
+		requestMethods := c.FormValue("RequestMethods")
+		if requestMethods == "" {
+			return fmt.Errorf("Won't create an app without request methods.")
+		}
+		//request methods should be space separated list of known request kinds
+		methodsToCreate := strings.Split(requestMethods, " ")
+		for _, m := range methodsToCreate {
+			//if we don't know this method, we return an error
+			if _, ok := nip47MethodDescriptions[m]; !ok {
+				return fmt.Errorf("Did not recognize request method: %s", m)
+			}
 			appPermission := AppPermission{
 				App:           app,
-				RequestMethod: NIP_47_PAY_INVOICE_METHOD,
+				RequestMethod: m,
+				ExpiresAt:     expiresAt,
+				//these fields are only relevant for pay_invoice
 				MaxAmount:     maxAmount,
 				BudgetRenewal: budgetRenewal,
-				ExpiresAt:     expiresAt,
 			}
-
 			err = tx.Create(&appPermission).Error
 			if err != nil {
 				return err
 			}
 		}
-
 		// commit transaction
 		return nil
 	})
@@ -360,7 +423,7 @@ func (svc *Service) AppsDeleteHandler(c echo.Context) error {
 		return c.Redirect(302, "/")
 	}
 	app := App{}
-	svc.db.Where("user_id = ?", user.ID).First(&app, c.Param("id"))
+	svc.db.Where("user_id = ? AND nostr_pubkey = ?", user.ID, c.Param("pubkey")).First(&app)
 	svc.db.Delete(&app)
 	return c.Redirect(302, "/apps")
 }
