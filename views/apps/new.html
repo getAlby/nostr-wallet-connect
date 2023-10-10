@@ -1,9 +1,9 @@
 {{define "body"}}
 
 <div
-  class="w-full lg:w-8/12 mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
+  class="mx-auto bg-white rounded-md shadow px-4 lg:px-12 py-4 lg:py-12 mb-10 dark:bg-surface-02dp"
 >
-  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
+  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white text-center">
     {{if .Name}}
       Connect to {{.Name}}
     {{else}}
@@ -11,9 +11,90 @@
     {{end}}
   </h2>
 
-  <p class="mb-4 text-sm font-medium text-gray-900 dark:text-white"></p>
 
-  <div id="RequestMethodOptions" class=" mt-4">
+    <img
+      src="/public/images/new-app-connection.png"
+      alt="Bitcoin on Nostr"
+      class="w-80 mx-auto"
+    />
+
+    <p class="mb-1 text-md font-medium text-gray-900 dark:text-white"> Authorise the new app to:</p>
+  <div class="mb-4 text-md text-gray-600 dark:text-white">
+    <p class="">
+      <img
+        alt=""
+        class="inline w-6 ml-1 md:ml-0"
+        src="/public/images/Wallet.svg"
+      />
+      Read access your wallet
+    </p>
+
+    <p>
+      <img
+        alt=""
+        class="inline w-6 ml-1 md:ml-0"
+      
+        src="/public/images/Lightning.svg"
+      />
+      Send and receive payments
+    </p>
+  </div>
+
+
+  <form method="POST" action="/apps" accept-charset="UTF-8">
+    <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
+      
+      {{ if eq .Name "" }}
+        <div class="mb-4">
+          <label
+            for="name"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Connection name</label
+          >
+          <input
+            {{if .Disabled}}tabIndex="-1"{{end}}
+            type="text"
+            name="name"
+            value="{{.Name}}"
+            id="name"
+            required
+            autocomplete="off"
+            class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
+          />
+          <p
+            class="mt-2 mb-6 text-xs text-gray-500 dark:text-gray-400"
+          >
+          Eg. name of the app or purpose of the connection. 
+          </p>
+        </div>
+      {{ else }}
+        <input type="hidden" name="name" value="{{.Name}}" id="name" />
+      {{end}}
+
+      
+
+      <div class="flex flex-col sm:flex-row sm:justify-center">
+        {{ if not .Pubkey }}
+        <a
+          href="/apps"
+          class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+        >
+          Cancel
+        </a>
+        {{ end }}
+  
+        <button
+          type="submit"
+          class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+        >
+        {{ if .Pubkey }} Connect Wallet {{ else }} Next {{ end }}
+        </button>
+      </div>
+
+  </form>
+
+    
+  <!-- <div id="RequestMethodOptions" class=" mt-4">
     <div class="mb-6">
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"> Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
       <ul class="items-center w-full sm:flex">
@@ -27,7 +108,7 @@
         {{ end }}
       </ul>
     </div>
-  </div>
+  </div> -->
 
   {{ if .Disabled }}
   <p class="text-blue-700 bg-blue-50 p-3 mb-6">
@@ -35,7 +116,7 @@
   </p>
   {{ end }}
   
-  <form method="POST" action="/apps" accept-charset="UTF-8">
+  <!-- <form method="POST" action="/apps" accept-charset="UTF-8">
     <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
       <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
@@ -173,7 +254,7 @@
       {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
       </button>
     </div>
-  </form>
+  </form> -->
 
   {{if .User.Email}}
     <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
