@@ -257,7 +257,10 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 
 		requestMethods = strings.Join(keys, " ")
 	}
-	budgetEnabled := maxAmount != "" || budgetRenewal != ""
+	budgetEnabled := maxAmount != ""
+	if !budgetEnabled {
+		budgetRenewal = ""
+	}
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
 
 	user, err := svc.GetUser(c)
