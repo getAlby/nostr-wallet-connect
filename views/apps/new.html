@@ -44,10 +44,10 @@
       <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
         Eg. name of the app or purpose of the connection. 
       </p>
-      <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
-      <input type="hidden" name="ExpiresAt" id="ExpiresAt" value="{{.ExpiresAt}}">
-      <input type="hidden" name="MaxAmount" id="MaxAmount" value="{{.MaxAmount}}">
-      <input type="hidden" name="BudgetRenewal" id="BudgetRenewal" value="{{.BudgetRenewal}}">
+      <input type="hidden" name="RequestMethods" id="request-methods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
+      <input type="hidden" name="ExpiresAt" id="expires-at">
+      <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
+      <input type="hidden" name="BudgetRenewal" id="budget-renewal" value="{{.BudgetRenewal}}">
     </div>
     <button class="block mx-auto p-4 font-medium text-purple-700 text-center my-2 cursor-pointer" onclick="document.getElementById('advanced-settings').classList.toggle('hidden');return false">
       Advanced Settings
@@ -84,141 +84,24 @@
   {{end}}
 </div>
 
-<div id="advanced-settings" class="flex fixed inset-0 items-center justify-center hidden" >
-  <div onclick="document.getElementById('advanced-settings').classList.toggle('hidden');return false" class="fixed inset-0 bg-gray-900 opacity-50"></div>
-
-  <div class="bg-white p-4 mx-4 md:px-6 rounded-md shadow relative max-h-[90vh] overflow-y-scroll">
-    <h2 class="mb-4 font-semibold text-xl font-headline dark:text-white">
-      Advanced Connection Settings
-    </h2>
-    {{ if .Disabled }}
-      <p class="rounded-md text-blue-700 bg-blue-50 p-3 mb-4">
-        💡 This app connection has preconfigured settings and cannot be edited.
-      </p>
-    {{ end }}
-    
-    <div {{ if .Disabled }}class="opacity-60 pointer-events-none"{{ end }}>
-      <div class="mb-6">
-        <label
-          for="ExpiresAtPopUp"
-          class="block mb-2 font-medium text-gray-800 dark:text-gray-300"
-        >
-          Connection expiry date
-        </label>
-        <input
-          {{if .Disabled}}tabIndex="-1"{{end}}
-          type="date"
-          name="ExpiresAtPopUp"
-          value="{{.ExpiresAt}}"
-          id="ExpiresAtPopUp"
-          autocomplete="off"
-          min=""
-          class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:[color-scheme:dark]"
-        >
-      </div>
-
-      <div class="mb-6">
-        <h3 class="font-semibold text-lg mb-4 text-gray-800 dark:text-white">
-          Permissions for the connected app
-        </h3>
-        <input type="hidden" id="RequestMethodsPopUp" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
-        <div id="RequestMethodOptions">
-          <ul class="items-center w-full">
-            {{range $key, $value := .RequestMethodHelper}}
-              <li class="w-full mb-2">
-                <label class="w-full relative inline-flex items-center justify-between cursor-pointer">
-                  <span class="text-sm text-gray-800 dark:text-gray-300">
-                    {{$value.Description}}
-                  </span>
-                  <input {{if $value.Checked }} checked {{end}} id="{{$key}}-id" type="checkbox" value="{{ $key }}" class="sr-only peer">
-                  <div class="shrink-0 w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:mt-0.5 after:ml-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-700"></div>
-                </label>
-              </li>
-            {{ end }}
-          </ul>
-        </div>
-      </div>
-
-      <p class="text-gray-500 dark:text-gray-400 flex items-center" class="mb-4">
-        <input {{if .Disabled}}tabIndex="-1"{{end}} {{if .BudgetEnabled}}checked{{end}} id="BudgetCheckbox" type="checkbox" class="w-4 h-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
-        <label for="BudgetCheckbox" class="ml-2 font-medium text-gray-800 dark:text-gray-300">Payments budget allowance</label>
-      </p>
-      <div class="{{if not .BudgetEnabled}}opacity-30{{end}}" id="BudgetOptions">
-        <div class="mt-4">
-          <label for="MaxAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            Budget Amount (in sats)
-          </label>
-          <input {{if .Disabled}}tabIndex="-1"{{end}} disabled type="number" name="MaxAmount" id="MaxAmountPopUp" aria-describedby="helper-text-explanation" class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white" pattern="{0-9}.*" value={{.MaxAmount}}>
-        </div>
-        <div class="mt-4">
-          <p class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-            Budget Renewal
-          </p>
-          <ul class="items-center w-full grid grid-cols-3 md:grid-cols-5 gap-x-8 gap-y-4">
-            <li class="w-full">
-              <div class="flex items-center">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} {{ if or (eq .BudgetRenewal "") (eq .BudgetRenewal "never") }}checked{{end}} disabled id="BudgetRenewalNever" type="radio" value="never" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalNever" class="w-full ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Never</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} disabled {{ if eq .BudgetRenewal "daily" }}checked{{end}} id="BudgetRenewalDaily" type="radio" value="daily" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalDaily" class="w-full ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Daily</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} disabled {{ if eq .BudgetRenewal "weekly" }}checked{{end}} id="BudgetRenewalWeekly" type="radio" value="weekly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalWeekly" class="w-full ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Weekly</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} disabled {{ if eq .BudgetRenewal "monthly" }}checked{{end}} id="BudgetRenewalMonthly" type="radio" value="monthly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalMonthly" class="w-full ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Monthly</label>
-              </div>
-            </li>
-            <li class="w-full">
-              <div class="flex items-center">
-                <input {{if .Disabled}}tabIndex="-1"{{end}} disabled {{ if eq .BudgetRenewal "yearly" }}checked{{end}} id="BudgetRenewalYearly" type="radio" value="yearly" name="BudgetRenewal" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                <label for="BudgetRenewalYearly" class="w-full ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Yearly</label>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="flex justify-between items-center gap-4 mt-6">
-      <button
-        onclick="document.getElementById('advanced-settings').classList.toggle('hidden');return false"
-        class="inline-flex w-full bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition"
-      >
-        Cancel
-      </button>
-      <button
-        id="save-settings"
-        class="inline-flex w-full bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-      >
-        Save
-      </button>
-    </div>
-  </div>
-</div>
+{{template "settings" .}}
 
 <script type="text/javascript">
-  var today = new Date();
-  var dateInput = document.getElementById("ExpiresAt");
-  var dateInputPopUp = document.getElementById("ExpiresAtPopUp");
-  dateInputPopUp.min = today.toISOString().split('T')[0];
+  // Connection Expiry Date
+  const today = new Date();
 
-  var expiry = new Date("{{.ExpiresAt}}");
+  const expiresAt = document.getElementById("expires-at");
+  const expiresAtFromPopup = document.getElementById("expires-at-popup");
+  expiresAtFromPopup.min = today.toISOString().split('T')[0];
+
+  const expiry = new Date("{{.ExpiresAt}}");
   if (!isNaN(Date.parse(expiry))) {
-    dateInput.value = dateInputPopUp.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
+    expiresAt.value = expiresAtFromPopup.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
   }
 
-  var requestMethodsPopUp = document.getElementById("RequestMethodsPopUp");
-  const requestMethodCheckboxes = document.getElementById("RequestMethodOptions").querySelectorAll("input[type=checkbox]");
+  // Permissions
+  const requestMethodsFromPopup = document.getElementById("request-methods-popup");
+  const requestMethodCheckboxes = document.getElementById("request-method-options").querySelectorAll("input[type=checkbox]");
   requestMethodCheckboxes.forEach(checkbox => {
     checkbox.addEventListener("change", function(e) {
       let checkedValues = "";
@@ -227,52 +110,75 @@
           checkedValues += checkbox.value + " ";
         }
       });
-      requestMethodsPopUp.value = checkedValues.trim();
+      requestMethodsFromPopup.value = checkedValues.trim();
     })
   })
 
-  var budgetCheckbox = document.getElementById("BudgetCheckbox");
-  var budgetOptions = document.getElementById("BudgetOptions");
-  var budgetInput = document.getElementById("MaxAmountPopUp");
-  const budgetOptionRadios = document.getElementById("BudgetOptions").querySelectorAll("input[type=radio]");
+  // Budget Options
+  const budgetCheckboxWrapperFromPopup = document.getElementById("budget-checkbox-wrapper-popup");
+  const budgetCheckboxFromPopup = document.getElementById("budget-checkbox-popup");
+  const budgetOptionsFromPopup = document.getElementById("budget-options-popup");
+  const maxAmountPopup = document.getElementById("max-amount-popup");
+  const budgetOptionRadiosFromPopup = document.getElementById("budget-options-popup").querySelectorAll("input[type=radio]");
 
-  budgetCheckbox.addEventListener("change", function(e) {
-    if (!budgetCheckbox.checked) {
-      budgetInput.value = null;
-      budgetInput.required = false;
-      budgetInput.disabled = true;
-      budgetOptions.classList.add("opacity-30");
-      budgetOptionRadios.forEach(radio => {
+  // Logic to toggle budget settings
+  budgetCheckboxFromPopup.addEventListener("change", function(e) {
+    if (!budgetCheckboxFromPopup.checked) {
+      maxAmountPopup.value = null;
+      maxAmountPopup.required = false;
+      maxAmountPopup.disabled = true;
+      budgetOptionsFromPopup.classList.add("opacity-30");
+      budgetOptionRadiosFromPopup.forEach(radio => {
         radio.disabled = true;
         radio.checked = radio.value === "never";
       })
     } else {
-      budgetInput.required = true;
-      budgetInput.disabled = false;
-      budgetOptionRadios.forEach(radio => {
+      maxAmountPopup.required = true;
+      maxAmountPopup.disabled = false;
+      budgetOptionRadiosFromPopup.forEach(radio => {
         radio.disabled = false;
       })
-      budgetOptions.classList.remove("opacity-30");
+      budgetOptionsFromPopup.classList.remove("opacity-30");
     }
   });
 
-  var saveSettings = document.getElementById("save-settings");
+  // Logic to disable budget settings when pay_invoice is disabled
+  const payInvoicePermissionFromPopup = document.getElementById("pay_invoice-id");
+  payInvoicePermissionFromPopup.addEventListener("change", function(e) {
+    if (!payInvoicePermissionFromPopup.checked) {
+      budgetCheckboxWrapperFromPopup.classList.add("hidden");
+      budgetOptionsFromPopup.classList.add("hidden");
+      budgetCheckboxFromPopup.checked = false;
+      budgetCheckboxFromPopup.dispatchEvent(new Event("change"));
+    } else {
+      budgetCheckboxWrapperFromPopup.classList.remove("hidden");
+      budgetOptionsFromPopup.classList.remove("hidden");
+    }
+  })
+
+  // Save Settings
+  const saveSettings = document.getElementById("save-settings");
   saveSettings.addEventListener("click", function(e) {
-    var requestMethods = document.getElementById("RequestMethods");
-    requestMethods.value = requestMethodsPopUp.value;
+    // Permissions
+    const requestMethods = document.getElementById("request-methods");
+    requestMethods.value = requestMethodsFromPopup.value;
 
-    dateInput.value = dateInputPopUp.value;
+    // Connection Expiry
+    expiresAt.value = expiresAtFromPopup.value;
 
-    var budgetRenewal = document.getElementById("BudgetRenewal");
-    budgetOptionRadios.forEach(radio => {
+    // Budget Amount
+    const maxAmount = document.getElementById("max-amount");
+    maxAmount.value = maxAmountPopup.value;
+
+    // Budget Renewal
+    const budgetRenewal = document.getElementById("budget-renewal");
+    budgetOptionRadiosFromPopup.forEach(radio => {
       if (radio.checked) {
         budgetRenewal.value = radio.value
       }
     })
-
-    var maxAmount = document.getElementById("MaxAmount");
-    maxAmount.value = budgetInput.value;
     
+    // Hide Popup
     document.getElementById('advanced-settings').classList.toggle('hidden');
   })
 </script>

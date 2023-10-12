@@ -49,7 +49,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 	templates := make(map[string]*template.Template)
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
-	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
+	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/templates/settings.html", "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
@@ -257,8 +257,9 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 
 		requestMethods = strings.Join(keys, " ")
 	}
-	budgetEnabled := maxAmount != ""
+	budgetEnabled := strings.Contains(strings.ToLower(requestMethods), NIP_47_PAY_INVOICE_METHOD) && maxAmount != ""
 	if !budgetEnabled {
+		maxAmount = ""
 		budgetRenewal = ""
 	}
 	csrf, _ := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)

@@ -930,6 +930,10 @@ select {
   width: 24px;
 }
 
+.w-\[500px\] {
+  width: 500px;
+}
+
 .w-\[65px\] {
   width: 65px;
 }
@@ -1376,10 +1380,6 @@ select {
 
 .opacity-50 {
   opacity: 0.5;
-}
-
-.opacity-80 {
-  opacity: 0.8;
 }
 
 .opacity-60 {
