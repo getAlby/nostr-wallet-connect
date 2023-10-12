@@ -32,7 +32,7 @@
       </label>
       <input
         {{if .Disabled}}tabIndex="-1"{{end}}
-        {{ if not (eq .Name "") }}disabled{{end}}
+        {{ if not (eq .Name "") }}readOnly{{end}}
         type="text"
         name="name"
         value="{{.Name}}"
