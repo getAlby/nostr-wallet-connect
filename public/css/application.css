@@ -1835,6 +1835,16 @@ select {
     padding-right: 1rem;
   }
 
+  .md\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .md\:py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
   .md\:pl-10 {
     padding-left: 2.5rem;
   }
@@ -1853,6 +1863,11 @@ select {
 
   .md\:pl-4 {
     padding-left: 1rem;
+  }
+
+  .md\:text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
 }
 

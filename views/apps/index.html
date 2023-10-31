@@ -4,7 +4,7 @@
     <h2 class="font-bold text-2xl font-headline dark:text-white">Connected apps</h2>
 
     <a
-      class="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-6 py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}}"
+      class="inline-flex bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium items-center justify-center px-3 md:px-6 py-2 md:py-3 rounded-lg shadow text-white transition {{if not .User}}opacity-50{{else}}hover:bg-purple-900{{end}} text-sm md:text-base"
       href="{{if not .User}}javascript:void(0);{{else}}/apps/new{{end}}"
     >
       <img
