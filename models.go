@@ -35,10 +35,10 @@ const (
 )
 
 var nip47MethodDescriptions = map[string]string{
-	NIP_47_GET_BALANCE_METHOD: "Read your balance.",
-	NIP_47_PAY_INVOICE_METHOD: "Send payments from your wallet.",
-	NIP_47_MAKE_INVOICE_METHOD: "Create invoices on your behalf.",
-	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of created invoices.",
+	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
+	NIP_47_PAY_INVOICE_METHOD:    "Send payments from your wallet",
+	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices on your behalf",
+	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of created invoices",
 }
 
 type AlbyMe struct {
@@ -63,7 +63,7 @@ type User struct {
 
 type App struct {
 	ID          uint
-	UserId      uint   `validate:"required"`
+	UserId      uint `validate:"required"`
 	User        User
 	Name        string `validate:"required"`
 	Description string
@@ -74,7 +74,7 @@ type App struct {
 
 type AppPermission struct {
 	ID            uint
-	AppId         uint   `validate:"required"`
+	AppId         uint `validate:"required"`
 	App           App
 	RequestMethod string `validate:"required"`
 	MaxAmount     int
@@ -86,7 +86,7 @@ type AppPermission struct {
 
 type NostrEvent struct {
 	ID        uint
-	AppId     uint   `validate:"required"`
+	AppId     uint `validate:"required"`
 	App       App
 	NostrId   string `validate:"required"`
 	ReplyId   string
@@ -197,6 +197,6 @@ type Nip47LookupInvoiceParams struct {
 }
 
 type Nip47LookupInvoiceResponse struct {
-	Invoice     string `json:"invoice"`
-	Paid        bool   `json:"paid"`
+	Invoice string `json:"invoice"`
+	Paid    bool   `json:"paid"`
 }
