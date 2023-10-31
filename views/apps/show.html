@@ -1,21 +1,20 @@
 {{define "body"}}
 
-
 <div class="bg-white rounded-md shadow p-4 lg:p-12 mb-10 dark:bg-surface-02dp">
-  <a class="mb-2 block dark:text-white" href="/apps">
-    &slarr;
-    Back
-  </a>
-
+  
   <div class="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
-    <div class="py-4">
+    <div class="pb-4">
       <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white">{{.App.Name}}</h2>
-      <p class="text-gray-400 text-sm">App connection pubkey: {{.App.NostrPubkey}}</p>
-      <p class="text-gray-400 text-sm">Last accessed:
+      <p class="text-gray-400">
+        <span class="font-medium dark:text-white">Public Key:</span> 
+        {{.App.NostrPubkey}}
+      </p>
+      <p class="text-gray-400">
+        <span class="font-medium dark:text-white">Last accessed:</span> 
         {{if gt .EventsCount 0 }}
-        {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
+          {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
         {{else}}
-        never
+          never
         {{end}}
       </p>
       <p class="text-sm">{{.App.Description}}</p>
@@ -23,7 +22,7 @@
   
     <div class="py-4">
       <h3 class="text-xl font-headline dark:text-white">Permissions</h3>
-      <ul class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+      <ul class="mt-2 text-gray-500 dark:text-gray-400">
           {{range .RequestMethods}}
             <li class="mb-2 relative pl-6">
               <span class="absolute left-0 text-green-500">✓</span>
@@ -59,9 +58,9 @@
       </ul>
     </div>
   
-    <div class="py-4">
+    <div class="pt-4">
       <h3 class="text-xl font-headline mb-2 dark:text-white">Danger zone</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">
         This will revoke the permission and will no longer allow calls from this pubkey.
       </p>
     </div>

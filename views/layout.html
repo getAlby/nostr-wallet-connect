@@ -17,12 +17,12 @@
     >
       <div class="container max-w-screen-lg mx-auto">
         <div
-          class="w-full py-2 flex flex-wrap justify-between items-center h-[56px]"
+          class="w-full py-2 flex flex-wrap justify-between items-center h-[56px] px-2 lg:px-0"
         >
           <a href="/" class="font-headline text-[20px] dark:text-white">
             <img
-              alt=""
-              class="inline w-8 ml-1 md:ml-0"
+              alt="NWC Logo"
+              class="w-8 inline"
               width="128"
               height="120"
               src="/public/images/nwc-logo.svg"
@@ -31,11 +31,11 @@
           </a>
           <div class="flex md:flex-1 items-center">
             <ul
-              class="hidden md:flex flex-wrap pl-10 pr-10 {{if .User}}mx-auto{{else}}w-full justify-end{{end}}"
+              class="hidden md:flex flex-wrap pl-10 pr-10 items-center {{if .User}}mx-auto{{else}}w-full justify-end{{end}}"
             >
               <li class="mx-2 flex">
                 <a
-                  class="text-gray-400 pl-5 py-2 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
+                  class="text-gray-400 pl-5 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition"
                   rel="nofollow"
                   href="/apps"
                 >
@@ -44,7 +44,7 @@
               </li>
               <li class="mx-2 flex">
                 <a
-                  class="text-gray-400 pl-5 py-2 font-medium"
+                  class="text-gray-400 pl-5 font-medium"
                   rel="nofollow"
                   href="/about"
                 >
@@ -53,15 +53,13 @@
               </li>
             </ul>
             {{if .User}}
-            <div class="pr-4 md:pr-2">
               <a
-                class="text-gray-400 pl-5 py-2 font-medium"
+                class="text-gray-400 pl-5 font-medium"
                 rel="nofollow"
                 href="/logout"
               >
                 Logout
               </a>
-            </div>
             {{end}}
           </div>
         </div>
@@ -70,7 +68,7 @@
     <main class="container max-w-screen-lg mx-auto px-2 lg:px-0 flex flex-col">
         {{template "body" .}}
     </main>
-    <footer class="mt-8 text-center">
+    <footer class="my-8 text-center">
       <span class="text-gray-500 dark:text-neutral-300">powered by</span>
       <a href="https://getalby.com">
         <img

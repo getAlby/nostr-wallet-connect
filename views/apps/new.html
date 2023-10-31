@@ -8,7 +8,7 @@
   {{end}}
 </h2>
 
-  <form method="POST" action="/apps" accept-charset="UTF-8">
+<form method="POST" action="/apps" accept-charset="UTF-8">
   <div class="p-4 dark:bg-surface-02dp bg-white rounded-md shadow">
       <div id="RequestMethodOptions">
         <div class="mb-6">
@@ -162,22 +162,14 @@
      
   </div>
 
-<div class="flex flex-col sm:flex-row sm:justify-center mt-5">
-    {{ if not .Pubkey }}
-    <a
-      href="/apps"
-      class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
-    >
-      Cancel
-    </a>
-    {{ end }}
-
+  <div class="flex flex-col sm:flex-row sm:justify-center mt-5">
     <button
       type="submit"
       class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
     >
-    {{ if .Pubkey }} Connect Wallet {{ else }} Next {{ end }}
+    {{ if .Pubkey }} Connect Wallet {{ else }} Continue {{ end }} &raquo;
     </button>
+  </div>
 </form>
 
 <script type="text/javascript">
