@@ -933,6 +933,22 @@ select {
   width: 10rem;
 }
 
+.max-w-lg {
+  max-width: 32rem;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
+}
+
+.max-w-4xl {
+  max-width: 56rem;
+}
+
+.max-w-screen-lg {
+  max-width: 1024px;
+}
+
 .table-auto {
   table-layout: auto;
 }
@@ -1181,6 +1197,16 @@ select {
 .py-\[6px\] {
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .pb-4 {
@@ -1637,6 +1663,11 @@ select {
     justify-content: center;
   }
 
+  .sm\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+
   .sm\:pr-0 {
     padding-right: 0px;
   }
@@ -1682,12 +1713,25 @@ select {
     padding-right: 0px;
   }
 
+  .md\:px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .md\:pl-10 {
     padding-left: 2.5rem;
   }
 
   .md\:pr-10 {
     padding-right: 2.5rem;
+  }
+
+  .md\:pr-0 {
+    padding-right: 0px;
+  }
+
+  .md\:pr-2 {
+    padding-right: 0.5rem;
   }
 }
 
@@ -1708,5 +1752,10 @@ select {
   .lg\:py-12 {
     padding-top: 3rem;
     padding-bottom: 3rem;
+  }
+
+  .lg\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }

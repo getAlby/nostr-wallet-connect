@@ -1,19 +1,16 @@
 {{define "body"}}
 
-<div
-  class="container lg:w-8/12 mx-auto px-4  mb-10"
->
-  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
-    {{if .Name}}
-      Connect to {{.Name}}
-    {{else}}
-      Connect a new app
-    {{end}}
-  </h2>
+<h2 class="font-bold text-2xl font-headline mb-4 dark:text-white">
+  {{if .Name}}
+    Connect to {{.Name}}
+  {{else}}
+    Connect a new app
+  {{end}}
+</h2>
 
-  <div class="p-5 dark:bg-surface-02dp bg-white rounded-md shadow">
-    <form method="POST" action="/apps" accept-charset="UTF-8">
-      <div id="RequestMethodOptions" class=" mt-4">
+  <form method="POST" action="/apps" accept-charset="UTF-8">
+  <div class="p-4 dark:bg-surface-02dp bg-white rounded-md shadow">
+      <div id="RequestMethodOptions">
         <div class="mb-6">
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"> Authorize {{ if .Name }}{{ .Name }}{{ else }}the new app{{end}} access to:</p>
           <ul class="items-center w-full sm:flex">
@@ -34,7 +31,6 @@
         💡 This app connection has preconfigured settings and cannot be edited.
       </p>
       {{ end }}
-      
       
       <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
         <input type="hidden" name="_csrf" value="{{.Csrf}}">
@@ -150,8 +146,9 @@
         </div>
 
       </div>
+
       {{ if .Pubkey }}
-        <p class="text-orange-700 bg-orange-50 p-3 mb-6 rounded">
+        <p class=" text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-900 py-3 px-4 mb-6 rounded-md">
           ⚠️ Only connect with apps you trust!
         </p>
       {{ end }}
@@ -161,27 +158,27 @@
           You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
         </p>
       {{end}}
-    </form>
-  </div>
-  <div class="flex flex-col sm:flex-row sm:justify-center mt-5">
-      {{ if not .Pubkey }}
-      <a
-        href="/apps"
-        class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
-      >
-        Cancel
-      </a>
-      {{ end }}
 
-      <button
-        type="submit"
-        class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-      >
-      {{ if .Pubkey }} Connect Wallet {{ else }} Next {{ end }}
-      </button>
+     
   </div>
-    
-  </div>
+
+<div class="flex flex-col sm:flex-row sm:justify-center mt-5">
+    {{ if not .Pubkey }}
+    <a
+      href="/apps"
+      class="inline-flex bg-white border cursor-pointer dark:bg-surface-02dp dark:border-white/10 dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first"
+    >
+      Cancel
+    </a>
+    {{ end }}
+
+    <button
+      type="submit"
+      class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+    >
+    {{ if .Pubkey }} Connect Wallet {{ else }} Next {{ end }}
+    </button>
+</form>
 
 <script type="text/javascript">
   var today = new Date();
