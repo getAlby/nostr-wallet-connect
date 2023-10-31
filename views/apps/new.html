@@ -1,7 +1,7 @@
 {{define "body"}}
 
 <div class="mx-auto bg-white rounded-md shadow p-4 md:px-8 md:py-6 mb-10 dark:bg-surface-02dp">
-  <h2 class="font-bold text-2xl font-headline mb-4 dark:text-white text-center">
+  <h2 class="font-bold text-2xl font-headline mb-6 dark:text-white text-center">
     {{if .Name}}
       Connect to {{.Name}}
     {{else}}
@@ -9,25 +9,14 @@
     {{end}}
   </h2>
   
-  <img src="/public/images/new-connection.png" class="mb-4 w-52 mx-auto"/>
-  <p class="mb-2 font-medium text-gray-800 dark:text-white">Authorise the new app to:</p>
-  <div class="mb-6 text-sm text-gray-600 dark:text-white">
-    <p class="mb-2">
-      <img class="inline w-5 mr-2" src="/public/images/Wallet.svg"/>
-      Read access your wallet
-    </p>
-    <p>
-      <img class="inline w-5 mr-2" src="/public/images/Lightning.svg"/>
-      Send and receive payments
-    </p>
-  </div>
+  <img src="/public/images/new-connection.png" class="mb-6 w-52 mx-auto"/>
   
   <form method="POST" action="/apps" accept-charset="UTF-8">
     <div {{ if .Disabled }}class="opacity-60 pointer-events-none"{{ end }}>
       <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}">
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}">
-      <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+      <label for="name" class="block font-medium text-gray-900 dark:text-white">
         Connection name
       </label>
       <input
@@ -41,24 +30,62 @@
         autocomplete="off"
         class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
       >
-      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+      <p class="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
         Eg. name of the app or purpose of the connection. 
       </p>
       <input type="hidden" name="RequestMethods" id="request-methods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
       <input type="hidden" name="ExpiresAt" id="expires-at">
       <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
-      <input type="hidden" name="BudgetRenewal" id="budget-renewal" value="{{.BudgetRenewal}}">
+      <input type="hidden" name="BudgetRenewal" id="budget-renewal" value="monthly">
     </div>
-    <button class="block mx-auto p-4 font-medium text-purple-700 text-center my-2 cursor-pointer" onclick="document.getElementById('advanced-settings').classList.toggle('hidden');return false">
-      Advanced Settings
-    </button>
+
+    <div class="flex justify-between items-center mb-2">
+      <p class="text-lg font-medium text-gray-800 dark:text-white">Authorise the new app to:</p>
+      <img id="edit" class="inline cursor-pointer w-6" src="/public/images/edit.svg"/>
+    </div>
+    <div id="request-method-options">
+      <ul class="flex flex-col w-full">
+        {{range $key, $value := .RequestMethodHelper}}
+          <li class="w-full mb-2 {{if eq $key "pay_invoice"}}order-last{{end}}">
+            <div class="flex items-center">
+              <img class="w-5 mr-3" src="/public/images/{{ $value.Icon }}.svg"/>
+              <input {{if $value.Checked }} checked {{end}} id="{{$key}}" type="checkbox" value="{{ $key }}" class="hidden w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700">
+              <label for="{{$key}}" class="pointer-events-none text-gray-800 dark:text-gray-300">{{$value.Description}}</label>
+            </div>
+          </li>
+        {{ end }}
+      </ul>
+    </div>
+    <div id="budget-allowance" class="mb-6 pt-1 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200">
+      <p class="text-gray-600 mb-2 text-sm">Budget allowance per <span class="font-semibold">month</span></p>
+      <div id="budget-allowance-limits" class="grid grid-cols-5 gap-2 text-xs text-gray-800">
+        <div data-limit="100" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">100</div>
+        <div data-limit="1000" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">1000</div>
+        <div data-limit="10000" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">10,000</div>
+        <div data-limit="100000" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">100,000</div>
+        <div data-limit="0" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4 border-purple-700 text-purple-700 bg-purple-100">Unlimited</div>
+      </div>
+    </div>
+
+    <div id="expiry-toggle" class="cursor-pointer text-sm font-medium text-purple-700">+ Add connection expiry time</div>
+
+    <div id="expiry" class="hidden">
+      <p class="text-lg font-medium mb-2 text-gray-800 dark:text-white">Connection expiry time</p>
+      <div id="expiry-days" class="grid grid-cols-4 gap-2 text-xs text-gray-800">
+        <div data-days="7" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">7 days</div>
+        <div data-days="30" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">30 days</div>
+        <div data-days="365" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4">365 days</div>
+        <div data-days="0" class="cursor-pointer rounded border-2 border-gray-200 text-center py-4 border-purple-700 text-purple-700 bg-purple-100">Never</div>
+      </div>
+    </div>
+
     {{ if .Pubkey }}
       <p class="rounded-md text-orange-700 bg-orange-50 p-3 mb-6">
         ⚠️ Only connect with apps you trust!
       </p>
     {{ end }}
 
-    <div class="flex flex-col sm:flex-row sm:justify-center">
+    <div class="mt-6 flex flex-col sm:flex-row sm:justify-center">
       {{ if not .Pubkey }}
       <a
         href="/apps"
@@ -84,102 +111,90 @@
   {{end}}
 </div>
 
-{{template "settings" .}}
-
 <script type="text/javascript">
-  // Connection Expiry Date
-  const today = new Date();
-
-  const expiresAt = document.getElementById("expires-at");
-  const expiresAtFromPopup = document.getElementById("expires-at-popup");
-  expiresAtFromPopup.min = today.toISOString().split('T')[0];
-
-  const expiry = new Date("{{.ExpiresAt}}");
-  if (!isNaN(Date.parse(expiry))) {
-    expiresAt.value = expiresAtFromPopup.value = today.getTime() < expiry.getTime() ? expiry.toISOString().split('T')[0] : today.toISOString().split('T')[0];
-  }
 
   // Permissions
-  const requestMethodsFromPopup = document.getElementById("request-methods-popup");
-  const requestMethodCheckboxes = document.getElementById("request-method-options").querySelectorAll("input[type=checkbox]");
-  requestMethodCheckboxes.forEach(checkbox => {
+  const perms = document.getElementById("request-method-options");
+  const edit = document.getElementById("edit");
+  
+  const permsBoxes = perms.querySelectorAll("input[type=checkbox]");
+  const permsIcons =  perms.querySelectorAll("img");
+  const permsLabels =  perms.querySelectorAll("label");
+  const requestMethods = document.getElementById("request-methods");
+  const budgetAllowance = document.getElementById("budget-allowance");
+
+  permsBoxes.forEach(checkbox => {
     checkbox.addEventListener("change", function(e) {
       let checkedValues = "";
-      requestMethodCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-          checkedValues += checkbox.value + " ";
+      permsBoxes.forEach(box => {
+        if (box.checked) {
+          checkedValues += box.value + " ";
         }
       });
-      requestMethodsFromPopup.value = checkedValues.trim();
+      if (checkbox.value == "pay_invoice") {
+        // Set to unlimited
+        budgetAllowance.classList.toggle("pointer-events-none");
+        budgetAllowance.classList.toggle("opacity-30")
+      }
+      requestMethods.value = checkedValues.trim();
     })
   })
 
-  // Budget Options
-  const budgetCheckboxWrapperFromPopup = document.getElementById("budget-checkbox-wrapper-popup");
-  const budgetCheckboxFromPopup = document.getElementById("budget-checkbox-popup");
-  const budgetOptionsFromPopup = document.getElementById("budget-options-popup");
-  const maxAmountPopup = document.getElementById("max-amount-popup");
-  const budgetOptionRadiosFromPopup = document.getElementById("budget-options-popup").querySelectorAll("input[type=radio]");
-
-  // Logic to toggle budget settings
-  budgetCheckboxFromPopup.addEventListener("change", function(e) {
-    if (!budgetCheckboxFromPopup.checked) {
-      maxAmountPopup.value = null;
-      maxAmountPopup.required = false;
-      maxAmountPopup.disabled = true;
-      budgetOptionsFromPopup.classList.add("opacity-30");
-      budgetOptionRadiosFromPopup.forEach(radio => {
-        radio.disabled = true;
-        radio.checked = radio.value === "never";
-      })
-    } else {
-      maxAmountPopup.required = true;
-      maxAmountPopup.disabled = false;
-      budgetOptionRadiosFromPopup.forEach(radio => {
-        radio.disabled = false;
-      })
-      budgetOptionsFromPopup.classList.remove("opacity-30");
-    }
-  });
-
-  // Logic to disable budget settings when pay_invoice is disabled
-  const payInvoicePermissionFromPopup = document.getElementById("pay_invoice-id");
-  payInvoicePermissionFromPopup.addEventListener("change", function(e) {
-    if (!payInvoicePermissionFromPopup.checked) {
-      budgetCheckboxWrapperFromPopup.classList.add("hidden");
-      budgetOptionsFromPopup.classList.add("hidden");
-      budgetCheckboxFromPopup.checked = false;
-      budgetCheckboxFromPopup.dispatchEvent(new Event("change"));
-    } else {
-      budgetCheckboxWrapperFromPopup.classList.remove("hidden");
-      budgetOptionsFromPopup.classList.remove("hidden");
-    }
+  edit.addEventListener("click", function(e) {
+    permsLabels.forEach(label => {
+      label.classList.toggle("select-none");
+      label.classList.toggle("pointer-events-none");
+    })
+    permsIcons.forEach(icon => {
+      icon.classList.toggle("hidden");
+    })
+    permsBoxes.forEach(checkbox => {
+      checkbox.classList.toggle("hidden");
+    })
+    edit.classList.toggle("hidden");
   })
 
-  // Save Settings
-  const saveSettings = document.getElementById("save-settings");
-  saveSettings.addEventListener("click", function(e) {
-    // Permissions
-    const requestMethods = document.getElementById("request-methods");
-    requestMethods.value = requestMethodsFromPopup.value;
+  // Budget Amount
+  const budgetAllowanceLimits = document.getElementById("budget-allowance-limits").querySelectorAll("div");
+  const maxAmount = document.getElementById("max-amount");
 
-    // Connection Expiry
-    expiresAt.value = expiresAtFromPopup.value;
+  budgetAllowanceLimits.forEach(limit => {
+    limit.addEventListener("click", function(e) {
+      budgetAllowanceLimits.forEach(div => {
+        div.classList.remove("border-purple-700", "text-purple-700", "bg-purple-100");
+      })
+      limit.classList.add("border-purple-700", "text-purple-700", "bg-purple-100");
+      maxAmount.value = limit.getAttribute('data-limit')
+    })
+  })
 
-    // Budget Amount
-    const maxAmount = document.getElementById("max-amount");
-    maxAmount.value = maxAmountPopup.value;
+  // Expiry
+  const expiry = document.getElementById("expiry");
+  const expiryToggle = document.getElementById("expiry-toggle");
 
-    // Budget Renewal
-    const budgetRenewal = document.getElementById("budget-renewal");
-    budgetOptionRadiosFromPopup.forEach(radio => {
-      if (radio.checked) {
-        budgetRenewal.value = radio.value
+  expiryToggle.addEventListener("click", function(e) {
+    expiry.classList.toggle("hidden");
+    expiryToggle.classList.toggle("hidden");
+  })
+
+  const today = new Date();
+  const expiryDays = document.getElementById("expiry-days").querySelectorAll("div");
+  const expiresAt = document.getElementById("expires-at");
+  
+  expiryDays.forEach(day => {
+    day.addEventListener("click", function(e) {
+      expiryDays.forEach(div => {
+        div.classList.remove("border-purple-700", "text-purple-700", "bg-purple-100");
+      })
+      day.classList.add("border-purple-700", "text-purple-700", "bg-purple-100");
+      let days = parseInt(day.getAttribute('data-days'));
+      if (days == 0) {
+        expiresAt.value = "";
+      } else {
+        let expiryDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+        expiresAt.value = expiryDate.toISOString().split('T')[0];
       }
     })
-    
-    // Hide Popup
-    document.getElementById('advanced-settings').classList.toggle('hidden');
   })
 </script>
 {{end}}

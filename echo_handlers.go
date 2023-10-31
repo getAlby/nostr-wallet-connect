@@ -49,7 +49,7 @@ func (svc *Service) RegisterSharedRoutes(e *echo.Echo) {
 
 	templates := make(map[string]*template.Template)
 	templates["apps/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/index.html", "views/layout.html"))
-	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/templates/settings.html", "views/apps/new.html", "views/layout.html"))
+	templates["apps/new.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/new.html", "views/layout.html"))
 	templates["apps/show.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/show.html", "views/layout.html"))
 	templates["apps/create.html"] = template.Must(template.ParseFS(embeddedViews, "views/apps/create.html", "views/layout.html"))
 	templates["alby/index.html"] = template.Must(template.ParseFS(embeddedViews, "views/backends/alby/index.html", "views/layout.html"))
@@ -284,6 +284,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	//and indicate which ones are checked by default in the front-end
 	type RequestMethodHelper struct {
 		Description string
+		Icon        string
 		Checked     bool
 	}
 
@@ -291,6 +292,7 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	for k, v := range nip47MethodDescriptions {
 		requestMethodHelper[k] = &RequestMethodHelper{
 			Description: v,
+			Icon:        nip47MethodIcons[k],    
 		}
 	}
 
