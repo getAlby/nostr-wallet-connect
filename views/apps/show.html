@@ -1,28 +1,35 @@
 {{define "body"}}
 
-<div class="bg-white rounded-md shadow p-4 lg:p-12 mb-10 dark:bg-surface-02dp">
-  
+
+<h2 class="font-bold text-2xl font-headline dark:text-white">{{.App.Name}}</h2>
+<a class="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
+  &slarr;
+  Back to overview
+</a>
+
+<div class="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp">
   <div class="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
     <div class="pb-4">
-      <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white">{{.App.Name}}</h2>
-      <p class="text-gray-400">
-        <span class="font-medium dark:text-white">Public Key:</span> 
-        {{.App.NostrPubkey}}
-      </p>
-      <p class="text-gray-400">
-        <span class="font-medium dark:text-white">Last accessed:</span> 
-        {{if gt .EventsCount 0 }}
+      <table class="">
+        <tr>
+          <td class="font-medium dark:text-white">Public Key:</td>
+          <td class="text-gray-600 dark:text-neutral-400">{{.App.NostrPubkey}}</td>
+        </tr>
+        <tr>
+          <td class="pr-3 font-medium dark:text-white">Last used:</td>
+          <td class="text-gray-600 dark:text-neutral-400">        {{if gt .EventsCount 0 }}
           {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
         {{else}}
           never
-        {{end}}
-      </p>
-      <p class="text-sm">{{.App.Description}}</p>
+        {{end}}</td>
+        </tr>
+      </table>
+      <p class="text-sm mt-2">{{.App.Description}}</p>
     </div>
   
     <div class="py-4">
       <h3 class="text-xl font-headline dark:text-white">Permissions</h3>
-      <ul class="mt-2 text-gray-500 dark:text-gray-400">
+      <ul class="mt-2 text-gray-600 dark:text-neutral-400">
           {{range .RequestMethods}}
             <li class="mb-2 relative pl-6">
               <span class="absolute left-0 text-green-500">✓</span>
@@ -59,7 +66,7 @@
     </div>
   
     <div class="pt-4">
-      <h3 class="text-xl font-headline mb-2 dark:text-white">Danger zone</h3>
+      <h3 class="text-xl font-headline mb-2 dark:text-white">⚠️ Danger zone</h3>
       <p class="text-gray-500 dark:text-gray-400 mb-4">
         This will revoke the permission and will no longer allow calls from this pubkey.
       </p>
@@ -72,4 +79,5 @@
       class="inline-flex bg-white border border-red-400 cursor-pointer dark:bg-surface-02dp dark:hover:bg-surface-16dp duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-gray-50 items-center justify-center px-5 py-3 rounded-md shadow text-gray-700 dark:text-neutral-300 transition w-full sm:w-[250px] sm:mr-8 mt-8 sm:mt-0 order-last sm:order-first">Disconnect</button>
   </form>
 </div>
+
 {{end}}
