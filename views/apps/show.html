@@ -2,6 +2,7 @@
 
 
 <h2 class="font-bold text-2xl font-headline dark:text-white">{{.App.Name}}</h2>
+<p class="text-gray-600 dark:text-neutral-400 text-sm">{{.App.Description}}</p>
 <a class="ml-1 mt-1 mb-4 block dark:text-white text-xs" href="/apps">
   &slarr;
   Back to overview
@@ -10,21 +11,32 @@
 <div class="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp">
   <div class="divide-y divide-gray-200 dark:divide-white/10 dark:bg-surface-02dp">
     <div class="pb-4">
-      <table class="">
+      <table>
         <tr>
           <td class="font-medium dark:text-white">Public Key:</td>
           <td class="text-gray-600 dark:text-neutral-400">{{.App.NostrPubkey}}</td>
         </tr>
         <tr>
           <td class="pr-3 font-medium dark:text-white">Last used:</td>
-          <td class="text-gray-600 dark:text-neutral-400">        {{if gt .EventsCount 0 }}
-          {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
-        {{else}}
-          never
-        {{end}}</td>
+          <td class="text-gray-600 dark:text-neutral-400">
+            {{if gt .EventsCount 0 }}
+              {{.LastEvent.CreatedAt.Format "02 Jan 06 15:04 MST" }}
+            {{else}}
+              never
+            {{end}}
+          </td>
+        </tr>
+        <tr>
+          <td class="pr-3 font-medium dark:text-white">Expires at:</td>
+          <td class="text-gray-600 dark:text-neutral-400">        
+             {{ if not .ExpiresAt.IsZero}}
+              {{.ExpiresAt}}
+            {{else}}
+              never
+            {{end}}
+          </td>
         </tr>
       </table>
-      <p class="text-sm mt-2">{{.App.Description}}</p>
     </div>
   
     <div class="py-4">
@@ -36,33 +48,21 @@
               {{ . }}
             </li>
           {{end}}
-        {{ if not .ExpiresAt.IsZero}}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Expiry:</span> {{.ExpiresAt}}
-          </p>
-        </li>
-        {{end}}
-        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Budget Amount:</span> {{.PaySpecificPermission.MaxAmount}}
-          </p>
-        </li>
-        {{end}}
-        {{ if gt .PaySpecificPermission.MaxAmount 0 }}
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Current usage:</span> {{.BudgetUsage}} / {{.PaySpecificPermission.MaxAmount}} sats
-          </p>
-        </li>
-        <li class="mb-2 relative pl-6">
-          <p>
-            <span class="dark:text-white">Renews in:</span> {{.RenewsIn}} (set to {{.PaySpecificPermission.BudgetRenewal}})
-          </p>
-        </li>
-        {{ end  }}
       </ul>
+      {{ if gt .PaySpecificPermission.MaxAmount 0 }}
+      <div class="pl-6">
+        <table class="text-gray-600 dark:text-neutral-400">
+          <tr>
+            <td class="font-medium">Budget</td>
+            <td>{{.PaySpecificPermission.MaxAmount}} sats ({{.BudgetUsage}} sats used)</td>
+          </tr>
+          <tr>
+            <td class="font-medium pr-3">Renews in</td>
+            <td>{{.RenewsIn}} (set to {{.PaySpecificPermission.BudgetRenewal}})</td>
+          </tr>
+        </table>
+      </div>
+      {{ end  }}
     </div>
   
     <div class="pt-4">
