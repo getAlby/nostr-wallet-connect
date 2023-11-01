@@ -12,7 +12,7 @@
   <img src="/public/images/new-connection.png" class="mb-6 w-52 mx-auto"/>
   
   <form method="POST" action="/apps" accept-charset="UTF-8">
-    <div {{ if .Disabled }}class="opacity-60 pointer-events-none"{{ end }}>
+    <div>
       <input type="hidden" name="_csrf" value="{{.Csrf}}">
       <input type="hidden" name="pubkey" value="{{.Pubkey}}">
       <input type="hidden" name="returnTo" value="{{.ReturnTo}}">
@@ -20,7 +20,6 @@
         Connection name
       </label>
       <input
-        {{if .Disabled}}tabIndex="-1"{{end}}
         {{ if not (eq .Name "") }}readOnly{{end}}
         type="text"
         name="name"
@@ -34,8 +33,8 @@
         Eg. name of the app or purpose of the connection. 
       </p>
       <input type="hidden" name="RequestMethods" id="request-methods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
-      <input type="hidden" name="ExpiresAt" id="expires-at">
-      <input type="hidden" name="MaxAmount" id="max-amount" value="{{.MaxAmount}}">
+      <input type="hidden" name="ExpiresAt" id="expires-at" value="">
+      <input type="hidden" name="MaxAmount" id="max-amount" value="">
       <input type="hidden" name="BudgetRenewal" id="budget-renewal" value="monthly">
     </div>
 
@@ -43,28 +42,30 @@
       <p class="text-lg font-medium">Authorise the new app to:</p>
       <img id="edit" class="dark:invert opacity-80 inline cursor-pointer w-6" src="/public/images/edit.svg"/>
     </div>
-    <div id="request-method-options">
+    <div id="request-method-options" class="mb-6">
       <ul class="flex flex-col w-full">
         {{range $key, $value := .RequestMethodHelper}}
-          <li class="w-full mb-2 {{if eq $key "pay_invoice"}}order-last{{end}}">
-            <div class="flex items-center">
+          <li class="w-full {{if eq $key "pay_invoice"}}order-last{{end}} {{if not $value.Checked }} hidden {{end}}">
+            <div class="flex items-center mb-2">
               <img class="dark:invert opacity-80 w-5 mr-3" src="/public/images/{{ $value.Icon }}.svg"/>
               <input {{if $value.Checked }} checked {{end}} id="{{$key}}" type="checkbox" value="{{ $key }}" class="hidden w-4 h-4 mr-4 text-purple-700 bg-gray-50 border border-gray-300 rounded focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-surface-00dp dark:border-gray-700 cursor-pointer">
               <label for="{{$key}}" class="pointer-events-none text-gray-800 dark:text-gray-300 cursor-pointer">{{$value.Description}}</label>
             </div>
+            {{if eq $key "pay_invoice"}}
+              <div id="budget-allowance" class="pt-1 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200 {{if not $value.Checked }} hidden {{end}}">
+                <p class="text-gray-600 dark:text-neutral-400 mb-2 text-sm">Monthly budget</p>
+                <div id="budget-allowance-limits" class="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-5 gap-2 text-xs text-gray-800 dark:text-neutral-200">
+                  <div data-limit="10000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">10k<br>sats</div>
+                  <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
+                  <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
+                  <div data-limit="1000000" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
+                  <div data-limit="0" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
+                </div>
+              </div>
+            {{end}}
           </li>
         {{ end }}
       </ul>
-    </div>
-    <div id="budget-allowance" class="mb-6 pt-1 pb-2 pl-5 ml-2.5 border-l-2 border-l-gray-200">
-      <p class="text-gray-600 dark:text-neutral-400 mb-2 text-sm">Monthly budget</p>
-      <div id="budget-allowance-limits" class="grid grid-cols-6 grid-rows-2 md:grid-rows-1 md:grid-cols-5 gap-2 text-xs text-gray-800 dark:text-neutral-200">
-        <div data-limit="10000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">10k<br>sats</div>
-        <div data-limit="50000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">50k<br>sats</div>
-        <div data-limit="100000" class="col-span-2 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">100k<br>sats</div>
-        <div data-limit="1000000" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4">1M<br>sats</div>
-        <div data-limit="0" class="col-span-3 md:col-span-1 cursor-pointer rounded border-2 border-gray-200 dark:border-gray-400 text-center py-4 border-purple-700 dark:border-purple-300 text-purple-700 dark:text-white bg-purple-100 dark:bg-purple-900">Unlimited<br>#reckless</b></div>
-      </div>
     </div>
 
     <div id="expiry-toggle" class="cursor-pointer text-sm font-medium text-purple-700  dark:text-purple-500">+ Add connection expiry time</div>
@@ -117,11 +118,13 @@
   const perms = document.getElementById("request-method-options");
   const edit = document.getElementById("edit");
   
+  const permsItems = perms.querySelectorAll("li");
   const permsBoxes = perms.querySelectorAll("input[type=checkbox]");
   const permsIcons =  perms.querySelectorAll("img");
   const permsLabels =  perms.querySelectorAll("label");
   const requestMethods = document.getElementById("request-methods");
   const budgetAllowance = document.getElementById("budget-allowance");
+  const budgetAllowanceLimits = document.getElementById("budget-allowance-limits").querySelectorAll("div");
 
   permsBoxes.forEach(checkbox => {
     checkbox.addEventListener("change", function(e) {
@@ -132,7 +135,8 @@
         }
       });
       if (checkbox.value == "pay_invoice") {
-        // Set to unlimited
+        let unlimited = document.querySelector('[data-limit="0"]')
+        unlimited.click();
         budgetAllowance.classList.toggle("pointer-events-none");
         budgetAllowance.classList.toggle("opacity-30")
       }
@@ -141,6 +145,10 @@
   })
 
   edit.addEventListener("click", function(e) {
+    permsItems.forEach(item => {
+      item.classList.remove("hidden");
+    })
+    budgetAllowance.classList.remove("hidden");
     permsLabels.forEach(label => {
       label.classList.toggle("select-none");
       label.classList.toggle("pointer-events-none");
@@ -155,7 +163,6 @@
   })
 
   // Budget Amount
-  const budgetAllowanceLimits = document.getElementById("budget-allowance-limits").querySelectorAll("div");
   const maxAmount = document.getElementById("max-amount");
 
   budgetAllowanceLimits.forEach(limit => {
