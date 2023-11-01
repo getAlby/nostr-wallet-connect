@@ -30,7 +30,7 @@
         class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
       >
       <p class="mt-1 mb-6 text-xs text-gray-500 dark:text-gray-400">
-        Eg. name of the app or purpose of the connection. 
+        Name of the app or purpose of the connection
       </p>
       <input type="hidden" name="RequestMethods" id="request-methods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
       <input type="hidden" name="ExpiresAt" id="expires-at" value="">
@@ -39,7 +39,7 @@
     </div>
 
     <div class="flex justify-between items-center mb-2 text-gray-800 dark:text-white">
-      <p class="text-lg font-medium">Authorise the new app to:</p>
+      <p class="text-lg font-medium">Authorise the new app to</p>
       <img id="edit" class="dark:invert opacity-80 inline cursor-pointer w-6" src="/public/images/edit.svg"/>
     </div>
     <div id="request-method-options" class="mb-6">
@@ -68,7 +68,9 @@
       </ul>
     </div>
 
-    <div id="expiry-toggle" class="cursor-pointer text-sm font-medium text-purple-700  dark:text-purple-500">+ Add connection expiry time</div>
+    <div id="expiry-toggle" class="cursor-pointer text-sm font-medium text-purple-700  dark:text-purple-500">
+      + Add connection expiry time
+    </div>
 
     <div id="expiry" class="hidden text-gray-800 dark:text-neutral-200">
       <p class="text-lg font-medium mb-2">Connection expiry time</p>

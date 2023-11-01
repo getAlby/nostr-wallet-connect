@@ -38,7 +38,7 @@ var nip47MethodDescriptions = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
 	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
 	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
-	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup statuses of invoices",
+	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
 }
 
 var nip47MethodIcons = map[string]string{
