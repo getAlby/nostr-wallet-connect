@@ -240,13 +240,13 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 	appName := c.QueryParam("c") // c - for client
 	pubkey := c.QueryParam("pubkey")
 	returnTo := c.QueryParam("return_to")
-	// maxAmount := c.QueryParam("max_amount")
-	// budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
-	// expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
-	// if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
-	// 	expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
-	// }
-	// disabled := c.QueryParam("editable") == "false"
+	maxAmount := c.QueryParam("max_amount")
+	budgetRenewal := strings.ToLower(c.QueryParam("budget_renewal"))
+	expiresAt := c.QueryParam("expires_at") // YYYY-MM-DD or MM/DD/YYYY or timestamp in seconds
+	if expiresAtTimestamp, err := strconv.Atoi(expiresAt); err == nil {
+		expiresAt = time.Unix(int64(expiresAtTimestamp), 0).Format(time.RFC3339)
+	}
+	disabled := c.QueryParam("editable") == "false"
 	requestMethods := c.QueryParam("request_methods")
 	if requestMethods == "" {
 		// if no request methods are given, enable them all by default
@@ -302,12 +302,12 @@ func (svc *Service) AppsNewHandler(c echo.Context) error {
 		"Name":                appName,
 		"Pubkey":              pubkey,
 		"ReturnTo":            returnTo,
-		// "MaxAmount":           maxAmount,
-		// "BudgetRenewal":       budgetRenewal,
-		// "ExpiresAt":           expiresAt,
+		"MaxAmount":           maxAmount,
+		"BudgetRenewal":       budgetRenewal,
+		"ExpiresAt":           expiresAt,
 		"RequestMethods":      requestMethods,
 		"RequestMethodHelper": requestMethodHelper,
-		// "Disabled":            disabled,
+		"Disabled":            disabled,
 		"Csrf":                csrf,
 	})
 }
