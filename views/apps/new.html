@@ -86,39 +86,7 @@
       <p class="rounded-md text-orange-700 bg-orange-50 dark:text-orange-200 dark:bg-orange-900 p-3 my-6">
         ⚠️ Only connect with apps you trust!
       </p>
-      {{ end }}
-      
-      <div {{ if .Disabled }}class="opacity-80 pointer-events-none"{{ end }}>
-        <input type="hidden" name="_csrf" value="{{.Csrf}}">
-        <input type="hidden" name="pubkey" value="{{.Pubkey}}" />
-        <input type="hidden" name="returnTo" value="{{.ReturnTo}}" />
-        <input type="hidden" name="RequestMethods" id="RequestMethods" value={{if .RequestMethods}}{{.RequestMethods}}{{else}}{{"pay_invoice"}}{{end}}>
-        {{ if eq .Name "" }}
-          <div class="mb-4">
-            <label
-              for="name"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Connection name</label
-            >
-            <input
-              {{if .Disabled}}tabIndex="-1"{{end}}
-              type="text"
-              name="name"
-              value="{{.Name}}"
-              id="name"
-              required
-              autocomplete="off"
-              class="bg-gray-50 border border-gray-300 text-gray-900 focus:ring-purple-700 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 text-sm rounded-lg block w-full p-2.5 dark:bg-surface-00dp dark:border-gray-700 dark:placeholder-gray-400 dark:text-white"
-            />
-            <p
-              class="mt-2 mb-6 text-sm text-gray-600 dark:text-neutral-400"
-            >
-              Give your connection a name to easily identify it.
-            </p>
-          </div>
-        {{ else }}
-          <input type="hidden" name="name" value="{{.Name}}" id="name" />
-        {{end}}
+    {{ end }}
 
     <div class="mt-6 flex flex-col sm:flex-row sm:justify-center">
       {{ if not .Pubkey }}
@@ -130,24 +98,21 @@
       </a>
       {{ end }}
 
-      {{if .User.Email}}
-        <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
-          You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
-        </p>
-      {{end}}
+      <button
+        type="submit"
+        class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
+      >
+      {{ if .Pubkey }} Connect Wallet {{ else }} Confirm {{ end }}
+      </button>
+    </div>
+  </form>
 
-     
-  </div>
-
-  <div class="flex flex-col sm:flex-row sm:justify-center mt-5">
-    <button
-      type="submit"
-      class="inline-flex w-full sm:w-[250px] bg-purple-700 cursor-pointer dark:text-neutral-200 duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-3 rounded-md shadow text-white transition"
-    >
-    {{ if .Pubkey }} Connect Wallet {{ else }} Continue {{ end }} &raquo;
-    </button>
-  </div>
-</form>
+  {{if .User.Email}}
+    <p class="mt-8 pt-4 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-500 dark:text-neutral-300 text-center">
+      You're logged in as <span class="font-mono">{{.User.Email}}</span><br>
+    </p>
+  {{end}}
+</div>
 
 <script type="text/javascript">
 
