@@ -36,9 +36,16 @@ const (
 
 var nip47MethodDescriptions = map[string]string{
 	NIP_47_GET_BALANCE_METHOD:    "Read your balance",
-	NIP_47_PAY_INVOICE_METHOD:    "Send payments from your wallet",
-	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices on your behalf",
-	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of created invoices",
+	NIP_47_PAY_INVOICE_METHOD:    "Send payments",
+	NIP_47_MAKE_INVOICE_METHOD:   "Create invoices",
+	NIP_47_LOOKUP_INVOICE_METHOD: "Lookup status of invoices",
+}
+
+var nip47MethodIcons = map[string]string{
+	NIP_47_GET_BALANCE_METHOD:    "wallet",
+	NIP_47_PAY_INVOICE_METHOD:    "lightning",
+	NIP_47_MAKE_INVOICE_METHOD:   "invoice",
+	NIP_47_LOOKUP_INVOICE_METHOD: "search",
 }
 
 type AlbyMe struct {
