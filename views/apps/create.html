@@ -1,14 +1,16 @@
 {{define "body"}}
 
-<div
-  class="bg-white rounded-md shadow p-4 lg:p-8 dark:bg-surface-02dp"
->
-  <h2 class="font-semibold text-xl text-center font-headline mb-6 dark:text-white">Pair with app to finalize</h2>
 
-  <div class="font-medium text-sm text-center mb-6 dark:text-white">Open, paste or scan your connection’s pairing secret in the desired app to finalise the connection.</div>
+<div class="w-full max-w-screen-sm mx-auto">
+  <h2 class="font-bold text-2xl font-headline mb-2 dark:text-white text-center">
+    🚀 Almost there, just one more step
+  </h2>
+  <div class="font-medium text-center mb-8 dark:text-white">
+    Complete the setup by pasting or scanning your connection's pairing secret in the desired app to finalise the connection.
+  </div>
 
-  <div class="mx-auto max-w-xs flex flex-col">
-    <a href="{{.PairingUri}}" class="w-full inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-3 py-2 rounded-md shadow text-white transition mb-4">
+<div class="flex flex-col">
+    <a href="{{.PairingUri}}" class="w-full inline-flex bg-purple-700 cursor-pointer duration-150 focus:outline-none font-medium hover:bg-purple-900 items-center justify-center px-5 py-4 rounded-md shadow text-white transition mb-2">
       <svg class="mr-2" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd"
           d="M13.6281 5.03035L20.9945 12.43L20.9956 12.431C21.4028 12.84 21.8601 13.0639 22.279 13.1062C22.6711 13.1459 23.0667 13.0322 23.4219 12.6949L19.4029 2.22631C18.9491 1.2345 17.6421 0.998839 16.8705 1.7739L13.6281 5.03035ZM20.5966 12.8277L20.5967 12.8278L20.5965 12.828C21.5558 13.7914 22.8871 14.0212 23.8507 13.0622L20.5884 16.3091L19.0591 17.8312L17.9915 18.8938L16.1182 17.0137C17.026 15.6333 16.8781 13.76 15.6662 12.5406L14.3908 11.2573C14.2095 11.0748 13.9176 11.074 13.7351 11.2553L13.1055 11.8809L11.5093 10.2748C11.2323 9.99609 10.7744 10.0126 10.5176 10.3196C10.2928 10.5907 10.3315 10.9906 10.5786 11.2392L12.1549 12.8252L10.9035 14.0685L9.3073 12.4624C9.03028 12.1837 8.5705 12.1981 8.31561 12.5072C8.0928 12.7764 8.13155 13.1762 8.37864 13.4249L9.95488 15.0109L9.32725 15.6346C9.14479 15.8159 9.14392 16.1077 9.32522 16.2902L10.6006 17.5735C11.8123 18.7927 13.6847 18.9526 15.0709 18.054L16.9452 19.9351L16.3577 20.5197L14.3527 22.5153C13.3889 23.4743 11.8301 23.4707 10.8708 22.5072L0.717064 12.3077C-0.242097 11.344 -0.238627 9.78546 0.725161 8.82627L6.96087 2.61994C7.92465 1.66089 9.4834 1.66451 10.4427 2.62803L20.5966 12.8277Z"
@@ -16,9 +18,13 @@
       </svg>
       Open in supported app
     </a>
+    <div class="text-center text-xs dark:text-neutral-500">
+      Only connect with apps you trust!
+    </div>
 
     {{if not (eq .PairingSecret "")}}
-      <button id="copy-button" class="w-full inline-flex font-semibold items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mb-4">
+      <div class="dark:text-white text-sm text-center mt-8 mb-1">Manually pair app ↓</div>
+      <button id="copy-button" class="w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mt-2 mb-2">
         <svg class="mr-2" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
           fill="currentColor">
           <rect width="10" height="14" x="6" y="6" rx="1.5"></rect>
@@ -28,7 +34,7 @@
         <span id="copy-text">Copy pairing secret</span>
       </button>
 
-      <button onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false" class="w-full inline-flex font-semibold items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mb-4 lg:mb-6">
+      <button onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false" class="w-full inline-flex items-center justify-center px-3 py-2 cursor-pointer duration-150 transition bg-white text-purple-700 dark:bg-surface-02dp dark:text-neutral-200 border dark:border-white/10 hover:bg-gray-50 dark:hover:bg-surface-16dp bg-origin-border shadow rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary mb-4 lg:mb-6">
         <svg class="mr-2" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
           fill="currentColor">
           <path d="M12 14a2 2 0 100-4 2 2 0 000 4z"></path>
@@ -36,14 +42,10 @@
             d="M21 12c0 2.761-4.03 5-9 5s-9-2.239-9-5 4.03-5 9-5 9 2.239 9 5zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
             clip-rule="evenodd"></path>
         </svg>
-        Reveal pairing secret
+        QR code
       </button>
     {{end}}
   </div>
-
-  <p class="w-fit text-xs border border-orange-200 text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-900 px-3 py-2 mx-auto rounded-md">
-    ⚠️ Connect only with apps you trust!
-  </p>
 
   <div class="flex fixed inset-0 items-center justify-center hidden" id="pairing-details">
     <div onclick="document.getElementById('pairing-details').classList.toggle('hidden');return false" class="fixed inset-0 bg-gray-900 opacity-50"></div>
