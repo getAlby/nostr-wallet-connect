@@ -67,11 +67,11 @@ The default option is that the NWC app creates a secret and the user uses the no
 
 ##### Query parameter options
 
-- `c`: the name of the client app
+- `name`: the name of the client app
 
 Example:
 
-`/apps/new?c=myapp`
+`/apps/new?name=myapp`
 
 #### Client created secret
 If the client creates the secret the client only needs to share the public key of that secret for authorization. The user authorized that pubkey and no sensitivate data needs to be shared.
@@ -88,7 +88,7 @@ If the client creates the secret the client only needs to share the public key o
 
 Example:
 
-`/apps/new?c=myapp&pubkey=47c5a21...&return_to=https://example.com`
+`/apps/new?name=myapp&pubkey=47c5a21...&return_to=https://example.com`
 
 #### Web-flow: client created secret
 Web clients can open a new prompt popup to load the authorization page.
