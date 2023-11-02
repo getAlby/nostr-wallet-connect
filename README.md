@@ -77,7 +77,7 @@ Example:
 If the client creates the secret the client only needs to share the public key of that secret for authorization. The user authorized that pubkey and no sensitivate data needs to be shared.
 
 ##### Query parameter options for /new
-- `c`: the name of the client app
+- `name`: the name of the client app
 - `pubkey`: the public key of the client's secret for the user to authorize
 - `return_to`: (optional) if a `return_to` URL is provided the user will be redirected to that URL after authorization. The `lud16`, `relay` and `pubkey` query parameters will be added to the URL.
 - `expires_at` (optional) connection cannot be used after this date. Unix timestamp in seconds.
