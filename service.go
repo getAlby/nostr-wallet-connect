@@ -274,6 +274,23 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		return nil, nil
 	}
 
+	if svc.lnClient == nil {
+		svc.Logger.WithFields(logrus.Fields{
+			"nostrPubkey": event.PubKey,
+		}).Errorf("Received an event before ln client is initialized")
+
+		ss, err := nip04.ComputeSharedSecret(event.PubKey, svc.cfg.NostrSecretKey)
+		if err != nil {
+			return nil, err
+		}
+		return svc.createResponse(event, Nip47Response{
+			Error: &Nip47Error{
+				Code:    NIP_47_ERROR_INTERNAL,
+				Message: "The public key does not have a ln client initialized.",
+			},
+		}, ss)
+	}
+
 	app := App{}
 	err = svc.db.First(&app, &App{
 		NostrPubkey: event.PubKey,
@@ -287,13 +304,12 @@ func (svc *Service) HandleEvent(ctx context.Context, event *nostr.Event) (result
 		if err != nil {
 			return nil, err
 		}
-		resp, _ := svc.createResponse(event, Nip47Response{
+		return svc.createResponse(event, Nip47Response{
 			Error: &Nip47Error{
 				Code:    NIP_47_ERROR_UNAUTHORIZED,
 				Message: "The public key does not have a wallet connected.",
 			},
 		}, ss)
-		return resp, err
 	}
 
 	svc.Logger.WithFields(logrus.Fields{
