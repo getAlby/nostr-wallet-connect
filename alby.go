@@ -721,6 +721,19 @@ func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
 		settledAt = &settledAtUnix
 	}
 
+	var customRecords = map[string]string{}
+	for key, value := range invoice.CustomRecords {
+		customRecords[key] = value // already base64 encoded
+	}
+
+	var metadata = map[string]interface{}{}
+	if invoice.Metadata != nil {
+		metadata["alby"] = invoice.Metadata
+	}
+	if len(customRecords) != 0 {
+		metadata["custom_records"] = customRecords
+	}
+
 	return &Nip47Transaction{
 		Type:            invoice.Type,
 		Invoice:         invoice.PaymentRequest,
@@ -733,6 +746,6 @@ func albyInvoiceToTransaction(invoice *AlbyInvoice) *Nip47Transaction {
 		CreatedAt:       invoice.CreatedAt.Unix(),
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
-		Metadata:        invoice.Metadata,
+		Metadata:        metadata,
 	}
 }

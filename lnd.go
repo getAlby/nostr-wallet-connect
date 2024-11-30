@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -121,6 +123,21 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			settledAt = &settledAtUnix
 		}
 
+		var customRecords = map[string]string{}
+		for _, htlc := range payment.Htlcs {
+			for _, hop := range htlc.Route.Hops {
+				for id, value := range hop.CustomRecords {
+					key := strconv.FormatUint(id, 10)
+					customRecords[key] = base64.StdEncoding.EncodeToString(value)
+				}
+			}
+		}
+
+		var metadata = map[string]map[string]string{}
+		if len(customRecords) != 0 {
+			metadata["custom_records"] = customRecords
+		}
+
 		transaction := Nip47Transaction{
 			Type:            "outgoing",
 			Invoice:         payment.PaymentRequest,
@@ -133,7 +150,7 @@ func (svc *LNDService) ListTransactions(ctx context.Context, senderPubkey string
 			DescriptionHash: descriptionHash,
 			ExpiresAt:       expiresAt,
 			SettledAt:       settledAt,
-			//TODO: Metadata:  (e.g. keysend),
+			Metadata:        metadata,
 		}
 		transactions = append(transactions, transaction)
 	}
@@ -369,7 +386,17 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 		expiresAtUnix := invoice.CreationDate + invoice.Expiry
 		expiresAt = &expiresAtUnix
 	}
-
+	var customRecords = map[string]string{}
+	for _, htlc := range invoice.Htlcs {
+		for id, value := range htlc.CustomRecords {
+			key := strconv.FormatUint(id, 10)
+			customRecords[key] = base64.StdEncoding.EncodeToString(value)
+		}
+	}
+	var metadata = map[string]map[string]string{}
+	if len(customRecords) != 0 {
+		metadata["custom_records"] = customRecords
+	}
 	return &Nip47Transaction{
 		Type:            "incoming",
 		Invoice:         invoice.PaymentRequest,
@@ -382,6 +409,6 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *Nip47Transaction {
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,
-		// TODO: Metadata (e.g. keysend)
+		Metadata:        metadata,
 	}
 }

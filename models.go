@@ -149,7 +149,7 @@ type AlbyInvoice struct {
 	CreatedAt time.Time `json:"created_at"`
 	// CreationDate uint64 `json:"creation_date"`
 	Currency string `json:"currency"`
-	// custom_records
+	CustomRecords map[string]string `json:"custom_records,omitempty"`
 	DescriptionHash string     `json:"description_hash"`
 	ExpiresAt       *time.Time `json:"expires_at"`
 	Expiry          uint32     `json:"expiry"`
